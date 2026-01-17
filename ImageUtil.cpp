@@ -1,5 +1,7 @@
 #include <windows.h>
 #include "ImageUtil.h"
+//Some of the effects CLSIDs are defined in d2d1effects_2.h
+#include <d2d1effects_2.h>
 
 // Constructor to initialize the ImageUtil with a window handle
 bool ImageUtil::init(HWND _wnd)
@@ -149,12 +151,34 @@ void ImageUtil::render()
 			offsetY + scaledHeight
 		);
 
-		pDeviceContext->DrawBitmap(
-			pBitmap.get(),
-			destRect,
-			1.0f,
-			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
-			NULL
+
+		SmartPtr<ID2D1Effect> brightnessEffect;
+		HRESULT hr = pDeviceContext->CreateEffect(CLSID_D2D1Brightness, &brightnessEffect);
+
+		brightnessEffect->SetValue(D2D1_BRIGHTNESS_PROP_WHITE_POINT, D2D1::Vector2F(0.0f, -0.05f));
+
+		if (!SUCCEEDED(hr)) {
+			return;
+		}
+
+		brightnessEffect->SetInput(0, pBitmap.get());
+
+		SmartPtr<ID2D1Effect> grayScaleEffect;
+		hr = pDeviceContext->CreateEffect(CLSID_D2D1Grayscale, &grayScaleEffect);
+
+		if (!SUCCEEDED(hr)) {
+			return;
+		}
+		grayScaleEffect->SetInputEffect(0, brightnessEffect.get());
+
+		//Create a scale effect and set its properties
+		SmartPtr<ID2D1Effect> scaleEffect;
+		pDeviceContext->CreateEffect(CLSID_D2D1Scale, &scaleEffect);
+		scaleEffect->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(scale, scale));
+		scaleEffect->SetInputEffect(0, grayScaleEffect.get());
+
+		pDeviceContext->DrawImage(
+			scaleEffect.get()
 		);
 	}
 

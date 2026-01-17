@@ -3,8 +3,6 @@
 
 #include "framework.h"
 #include "image_viewer.h"
-#include <d2d1.h>
-#include <d2d1helper.h>
 #include <wincodec.h>
 #include <string>
 
@@ -13,6 +11,8 @@
 
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "windowscodecs.lib")
+//We need dxguid.lib for some of the CLSID and IID definitions
+#pragma comment(lib, "dxguid.lib")
 
 #define MAX_LOADSTRING 100
 

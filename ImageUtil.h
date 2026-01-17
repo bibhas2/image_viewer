@@ -1,7 +1,7 @@
 #pragma once
 
 #include "com_ptr.h"
-#include <d2d1_1.h>
+#include <d2d1_2.h>
 #include <wincodec.h>
 
 struct ImageUtil
