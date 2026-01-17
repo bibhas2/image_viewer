@@ -43,6 +43,13 @@ bool ImageUtil::init(HWND _wnd)
 		return false;
 	}
 
+	//Get the device context from the render target
+	hr = pRenderTarget->QueryInterface(IID_PPV_ARGS(&pDeviceContext));
+
+	if (!SUCCEEDED(hr)) {
+		return false;
+	}
+
 	return true;
 }
 
@@ -94,7 +101,7 @@ bool ImageUtil::loadImageFromFile(const wchar_t* filename)
 
 	pBitmap.reset();
 
-	hr = pRenderTarget->CreateBitmapFromWicBitmap(
+	hr = pDeviceContext->CreateBitmapFromWicBitmap(
 		pConverter.get(),
 		nullptr,
 		&pBitmap
@@ -119,8 +126,8 @@ void ImageUtil::resize()
 // Render the loaded bitmap onto the window
 void ImageUtil::render()
 {
-	pRenderTarget->BeginDraw();
-	pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
+	pDeviceContext->BeginDraw();
+	pDeviceContext->Clear(D2D1::ColorF(D2D1::ColorF::White));
 
 	if (pBitmap) {
 		// Get the size of the bitmap
@@ -142,7 +149,7 @@ void ImageUtil::render()
 			offsetY + scaledHeight
 		);
 
-		pRenderTarget->DrawBitmap(
+		pDeviceContext->DrawBitmap(
 			pBitmap.get(),
 			destRect,
 			1.0f,
@@ -151,5 +158,5 @@ void ImageUtil::render()
 		);
 	}
 
-	pRenderTarget->EndDraw();
+	pDeviceContext->EndDraw();
 }
