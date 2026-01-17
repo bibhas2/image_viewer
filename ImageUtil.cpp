@@ -1,5 +1,7 @@
 #include <windows.h>
 #include "ImageUtil.h"
+//Some of the effects CLSIDs are defined in d2d1effects_2.h
+#include <d2d1effects_2.h>
 
 // Constructor to initialize the ImageUtil with a window handle
 bool ImageUtil::init(HWND _wnd)
@@ -38,6 +40,13 @@ bool ImageUtil::init(HWND _wnd)
 		),
 		&pRenderTarget
 	);
+
+	if (!SUCCEEDED(hr)) {
+		return false;
+	}
+
+	//Get the device context from the render target
+	hr = pRenderTarget->QueryInterface(IID_PPV_ARGS(&pDeviceContext));
 
 	if (!SUCCEEDED(hr)) {
 		return false;
@@ -94,7 +103,7 @@ bool ImageUtil::loadImageFromFile(const wchar_t* filename)
 
 	pBitmap.reset();
 
-	hr = pRenderTarget->CreateBitmapFromWicBitmap(
+	hr = pDeviceContext->CreateBitmapFromWicBitmap(
 		pConverter.get(),
 		nullptr,
 		&pBitmap
@@ -119,8 +128,8 @@ void ImageUtil::resize()
 // Render the loaded bitmap onto the window
 void ImageUtil::render()
 {
-	pRenderTarget->BeginDraw();
-	pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
+	pDeviceContext->BeginDraw();
+	pDeviceContext->Clear(D2D1::ColorF(D2D1::ColorF::White));
 
 	if (pBitmap) {
 		// Get the size of the bitmap
@@ -142,14 +151,36 @@ void ImageUtil::render()
 			offsetY + scaledHeight
 		);
 
-		pRenderTarget->DrawBitmap(
-			pBitmap.get(),
-			destRect,
-			1.0f,
-			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
-			NULL
+
+		SmartPtr<ID2D1Effect> brightnessEffect;
+		HRESULT hr = pDeviceContext->CreateEffect(CLSID_D2D1Brightness, &brightnessEffect);
+
+		brightnessEffect->SetValue(D2D1_BRIGHTNESS_PROP_WHITE_POINT, D2D1::Vector2F(0.0f, -0.05f));
+
+		if (!SUCCEEDED(hr)) {
+			return;
+		}
+
+		brightnessEffect->SetInput(0, pBitmap.get());
+
+		SmartPtr<ID2D1Effect> grayScaleEffect;
+		hr = pDeviceContext->CreateEffect(CLSID_D2D1Grayscale, &grayScaleEffect);
+
+		if (!SUCCEEDED(hr)) {
+			return;
+		}
+		grayScaleEffect->SetInputEffect(0, brightnessEffect.get());
+
+		//Create a scale effect and set its properties
+		SmartPtr<ID2D1Effect> scaleEffect;
+		pDeviceContext->CreateEffect(CLSID_D2D1Scale, &scaleEffect);
+		scaleEffect->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(scale, scale));
+		scaleEffect->SetInputEffect(0, grayScaleEffect.get());
+
+		pDeviceContext->DrawImage(
+			scaleEffect.get()
 		);
 	}
 
-	pRenderTarget->EndDraw();
+	pDeviceContext->EndDraw();
 }
