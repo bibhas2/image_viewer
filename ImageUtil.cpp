@@ -123,24 +123,23 @@ void ImageUtil::render()
 	pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
 
 	if (pBitmap) {
+		// Get the size of the bitmap
+		D2D1_SIZE_F bmpSize = pBitmap->GetSize();
+
+		// Get the size of the render target
 		D2D1_SIZE_F rtSize = pRenderTarget->GetSize();
-		D2D1_SIZE_F bmSize = pBitmap->GetSize();
 
-		float scaleX = rtSize.width / bmSize.width;
-		float scaleY = rtSize.height / bmSize.height;
-		float scale = min(scaleX, scaleY);
-
-		float drawWidth = bmSize.width * scale;
-		float drawHeight = bmSize.height * scale;
-
-		float offsetX = (rtSize.width - drawWidth) / 2.0f;
-		float offsetY = (rtSize.height - drawHeight) / 2.0f;
+		// Calculate the destination rectangle, centered and scaled
+		float scaledWidth = bmpSize.width * scale;
+		float scaledHeight = bmpSize.height * scale;
+		float offsetX = (rtSize.width - scaledWidth) / 2.0f;
+		float offsetY = (rtSize.height - scaledHeight) / 2.0f;
 
 		D2D1_RECT_F destRect = D2D1::RectF(
 			offsetX,
 			offsetY,
-			offsetX + drawWidth,
-			offsetY + drawHeight
+			offsetX + scaledWidth,
+			offsetY + scaledHeight
 		);
 
 		pRenderTarget->DrawBitmap(
@@ -148,7 +147,7 @@ void ImageUtil::render()
 			destRect,
 			1.0f,
 			D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
-			D2D1::RectF(0.0f, 0.0f, bmSize.width, bmSize.height)
+			NULL
 		);
 	}
 

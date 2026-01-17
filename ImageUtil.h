@@ -6,6 +6,7 @@
 
 struct ImageUtil
 {
+	float scale = 1.0;
 	HWND wnd;
 	SmartPtr<ID2D1Factory> pFactory;
 	SmartPtr<ID2D1HwndRenderTarget> pRenderTarget;

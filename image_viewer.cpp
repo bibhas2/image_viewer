@@ -215,6 +215,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
+			case ID_VIEW_ZOOMIN:
+				imUtil.scale *= 1.2f;
+				InvalidateRect(hMainWnd, NULL, FALSE);
+				break;
+			case ID_VIEW_ZOOMOUT:
+				imUtil.scale /= 1.2f;
+				InvalidateRect(hMainWnd, NULL, FALSE);
+				break;
+			case ID_VIEW_ACTUALSIZE:
+				imUtil.scale = 1.0f;
+				InvalidateRect(hMainWnd, NULL, FALSE);
+				break;
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);
             }
@@ -223,6 +235,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_PAINT:
 		imUtil.render();
         break;
+	case WM_SIZE:
+		imUtil.resize();
+		break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
