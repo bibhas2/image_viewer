@@ -141,7 +141,8 @@ struct ToolsWindow : public CFrame {
         ID_WHITEPOINTX = 2002,
         ID_WHITEPOINTY = 2003,
         ID_BLACKPOINTX = 2004,
-        ID_BLACKPOINTY = 2005;
+        ID_BLACKPOINTY = 2005,
+        ID_EXPOSURE = 2006;
 
     MainWindow& mainWindow;
     CCheckBox grayscale;
@@ -151,6 +152,7 @@ struct ToolsWindow : public CFrame {
 	CTrackBar blackPointY;
 	CTrackBar saturation;
 	CTrackBar contrast;
+	CTrackBar exposure;
 
     ToolsWindow(MainWindow& w) : mainWindow(w) {
 
@@ -224,6 +226,17 @@ struct ToolsWindow : public CFrame {
 		contrast.setPos((int)(mainWindow.imUtil.contrast * 100));
 
         y += TRACKBAR_H + GAP;
+
+		// Exposure
+		CLabel().create("Exposure", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		exposure.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_EXPOSURE);
+		// Map exposure [-2.0,2.0] to trackbar [-200,200]
+		exposure.setMin(-200);
+		exposure.setMax(200);
+		exposure.setPos((int)(mainWindow.imUtil.exposure * 100));
+
+        y += TRACKBAR_H + GAP;
     }
 
 	//Implement onCommand
@@ -263,6 +276,10 @@ struct ToolsWindow : public CFrame {
             else if (hwndCtl == contrast.getWindow()) {
                 mainWindow.imUtil.contrast = contrast.getPos() / 100.0f;
             }
+			else if (hwndCtl == exposure.getWindow()) {
+				// Trackbar gives [-200,200]; convert to [-2.0,2.0]
+				mainWindow.imUtil.exposure = exposure.getPos() / 100.0f;
+			}
 
             mainWindow.imUtil.redraw();
 

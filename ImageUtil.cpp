@@ -82,6 +82,14 @@ bool ImageUtil::init(HWND _wnd)
 		return false;
 	}
 
+	// Create exposure effect
+	hr = pDeviceContext->CreateEffect(CLSID_D2D1Exposure, &exposureEffect);
+
+	if (!SUCCEEDED(hr)) {
+		// If exposure effect is not available, continue without it
+		exposureEffect.reset();
+	}
+
 	return true;
 }
 
@@ -193,6 +201,10 @@ void ImageUtil::render()
 		contrastEffect->SetValue(D2D1_CONTRAST_PROP_CONTRAST, contrast);
 		contrastEffect->SetInputEffect(0, lastEffect.get());
 		lastEffect = contrastEffect;
+
+		exposureEffect->SetValue(D2D1_EXPOSURE_PROP_EXPOSURE_VALUE, exposure);
+		exposureEffect->SetInputEffect(0, lastEffect.get());
+		lastEffect = exposureEffect;
 
 		scaleEffect->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(scale, scale));
 		scaleEffect->SetInputEffect(0, lastEffect.get());
