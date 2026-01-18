@@ -128,6 +128,48 @@ public:
     }
 };
 
+struct ToolsWindow : public CFrame {
+    //Define a constant for width as 30
+    static const int 
+        WIDTH = 200,
+        GAP = 4,
+        LABEL_H = 14;
+
+    static const int
+        ID_GRAYSCALE = 2001;
+
+    MainWindow& mainWindow;
+    CCheckBox grayscale;
+
+    ToolsWindow(MainWindow& w) : mainWindow(w) {
+
+    }
+
+    void create() {
+        CFrame::create("Tools", WIDTH + GAP + GAP, 200);
+
+        int y = GAP;
+
+        grayscale.create("Grayscale", GAP, y, WIDTH, LABEL_H, this, (HMENU) ID_GRAYSCALE);
+		//Set initial state
+		grayscale.setCheck(mainWindow.imUtil.applyGrayscale);
+    }
+
+	//Implement onCommand
+    void onCommand(int id, int type, CWindow* source) override {
+        if (id == ID_GRAYSCALE) {
+			//Toggle checkbox state
+			grayscale.setCheck(!grayscale.getCheck());
+			//Apply grayscale effect
+            mainWindow.imUtil.applyGrayscale = grayscale.getCheck();
+			mainWindow.imUtil.redraw();
+        }
+        else {
+            CFrame::onCommand(id, type, source);
+        }
+	}
+};
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
     _In_ LPWSTR    lpCmdLine,
@@ -145,6 +187,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     mainWin.create();
     mainWin.show();
+
+    ToolsWindow toolsWindow(mainWin);
+
+    toolsWindow.create();
+    toolsWindow.show();
 
 	CWindow::loop();
 

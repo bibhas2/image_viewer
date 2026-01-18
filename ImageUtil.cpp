@@ -52,7 +52,29 @@ bool ImageUtil::init(HWND _wnd)
 		return false;
 	}
 
+	hr = pDeviceContext->CreateEffect(CLSID_D2D1Brightness, &brightnessEffect);
+
+	if (!SUCCEEDED(hr)) {
+		return false;
+	}
+
+	hr = pDeviceContext->CreateEffect(CLSID_D2D1Grayscale, &grayScaleEffect);
+
+	if (!SUCCEEDED(hr)) {
+		return false;
+	}
+
+	hr = pDeviceContext->CreateEffect(CLSID_D2D1Scale, &scaleEffect);
+
+	if (!SUCCEEDED(hr)) {
+		return false;
+	}
+
 	return true;
+}
+
+void ImageUtil::redraw() {
+	InvalidateRect(wnd, NULL, FALSE);
 }
 
 // Load an image from a file and create a Direct2D bitmap
@@ -138,44 +160,22 @@ void ImageUtil::render()
 		// Get the size of the render target
 		D2D1_SIZE_F rtSize = pRenderTarget->GetSize();
 
-		// Calculate the destination rectangle, centered and scaled
-		float scaledWidth = bmpSize.width * scale;
-		float scaledHeight = bmpSize.height * scale;
-		float offsetX = (rtSize.width - scaledWidth) / 2.0f;
-		float offsetY = (rtSize.height - scaledHeight) / 2.0f;
+		SmartPtr<ID2D1Effect> lastEffect;
 
-		D2D1_RECT_F destRect = D2D1::RectF(
-			offsetX,
-			offsetY,
-			offsetX + scaledWidth,
-			offsetY + scaledHeight
-		);
-
-
-		SmartPtr<ID2D1Effect> brightnessEffect;
-		HRESULT hr = pDeviceContext->CreateEffect(CLSID_D2D1Brightness, &brightnessEffect);
-
-		brightnessEffect->SetValue(D2D1_BRIGHTNESS_PROP_WHITE_POINT, D2D1::Vector2F(0.0f, -0.05f));
-
-		if (!SUCCEEDED(hr)) {
-			return;
-		}
+		brightnessEffect->SetValue(D2D1_BRIGHTNESS_PROP_WHITE_POINT, D2D1::Vector2F(whitePointX, whitePointY));
+		brightnessEffect->SetValue(D2D1_BRIGHTNESS_PROP_BLACK_POINT, D2D1::Vector2F(blackPointX, blackPointY));
 
 		brightnessEffect->SetInput(0, pBitmap.get());
-
-		SmartPtr<ID2D1Effect> grayScaleEffect;
-		hr = pDeviceContext->CreateEffect(CLSID_D2D1Grayscale, &grayScaleEffect);
-
-		if (!SUCCEEDED(hr)) {
-			return;
+		lastEffect = brightnessEffect;
+		
+		if (applyGrayscale) {
+			grayScaleEffect->SetInputEffect(0, lastEffect.get());
+			
+			lastEffect = grayScaleEffect;
 		}
-		grayScaleEffect->SetInputEffect(0, brightnessEffect.get());
 
-		//Create a scale effect and set its properties
-		SmartPtr<ID2D1Effect> scaleEffect;
-		pDeviceContext->CreateEffect(CLSID_D2D1Scale, &scaleEffect);
 		scaleEffect->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(scale, scale));
-		scaleEffect->SetInputEffect(0, grayScaleEffect.get());
+		scaleEffect->SetInputEffect(0, lastEffect.get());
 
 		pDeviceContext->DrawImage(
 			scaleEffect.get()
