@@ -11,6 +11,7 @@ struct ImageUtil
 	float whitePointY = 1.0f;
 	float blackPointX = 0.0f;
 	float blackPointY = 0.0f;
+	float saturation = 1.0f;
 	boolean applyGrayscale = false;
 	HWND wnd;
 	SmartPtr<ID2D1Factory> pFactory;
@@ -21,6 +22,7 @@ struct ImageUtil
 	SmartPtr<ID2D1Effect> scaleEffect;
 	SmartPtr<ID2D1Effect> grayScaleEffect;
 	SmartPtr<ID2D1Effect> brightnessEffect;
+	SmartPtr<ID2D1Effect> saturationEffect;
 
 	bool init(HWND wnd);
 	bool loadImageFromFile(const wchar_t* filename);
