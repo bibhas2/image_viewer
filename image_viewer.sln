@@ -5,6 +5,8 @@ VisualStudioVersion = 17.11.35431.28
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "image_viewer", "image_viewer.vcxproj", "{823400F1-1EEA-42C6-B93F-A239E0B70598}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mgui", "..\mgui\mgui.vcxproj", "{6755C2D9-99E4-4734-A340-DF0E83F30AD9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{823400F1-1EEA-42C6-B93F-A239E0B70598}.Release|x64.Build.0 = Release|x64
 		{823400F1-1EEA-42C6-B93F-A239E0B70598}.Release|x86.ActiveCfg = Release|Win32
 		{823400F1-1EEA-42C6-B93F-A239E0B70598}.Release|x86.Build.0 = Release|Win32
+		{6755C2D9-99E4-4734-A340-DF0E83F30AD9}.Debug|x64.ActiveCfg = Debug|x64
+		{6755C2D9-99E4-4734-A340-DF0E83F30AD9}.Debug|x64.Build.0 = Debug|x64
+		{6755C2D9-99E4-4734-A340-DF0E83F30AD9}.Debug|x86.ActiveCfg = Debug|Win32
+		{6755C2D9-99E4-4734-A340-DF0E83F30AD9}.Debug|x86.Build.0 = Debug|Win32
+		{6755C2D9-99E4-4734-A340-DF0E83F30AD9}.Release|x64.ActiveCfg = Release|x64
+		{6755C2D9-99E4-4734-A340-DF0E83F30AD9}.Release|x64.Build.0 = Release|x64
+		{6755C2D9-99E4-4734-A340-DF0E83F30AD9}.Release|x86.ActiveCfg = Release|Win32
+		{6755C2D9-99E4-4734-A340-DF0E83F30AD9}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
