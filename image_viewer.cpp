@@ -150,6 +150,7 @@ struct ToolsWindow : public CFrame {
 	CTrackBar blackPointX;
 	CTrackBar blackPointY;
 	CTrackBar saturation;
+	CTrackBar contrast;
 
     ToolsWindow(MainWindow& w) : mainWindow(w) {
 
@@ -214,6 +215,15 @@ struct ToolsWindow : public CFrame {
 		saturation.setPos((int)(mainWindow.imUtil.saturation * 100 / 2.0));
 
         y += TRACKBAR_H + GAP;
+
+		CLabel().create("Contrast", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		contrast.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
+		contrast.setMin(-100);
+		contrast.setMax(100);
+		contrast.setPos((int)(mainWindow.imUtil.contrast * 100));
+
+        y += TRACKBAR_H + GAP;
     }
 
 	//Implement onCommand
@@ -249,6 +259,9 @@ struct ToolsWindow : public CFrame {
             }
             else if (hwndCtl == saturation.getWindow()) {
                 mainWindow.imUtil.saturation = saturation.getPos() / 100.0f * 2.0f;
+            }
+            else if (hwndCtl == contrast.getWindow()) {
+                mainWindow.imUtil.contrast = contrast.getPos() / 100.0f;
             }
 
             mainWindow.imUtil.redraw();

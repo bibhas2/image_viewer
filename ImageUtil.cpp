@@ -76,6 +76,12 @@ bool ImageUtil::init(HWND _wnd)
 		return false;
 	}
 
+	hr = pDeviceContext->CreateEffect(CLSID_D2D1Contrast, &contrastEffect);
+
+	if (!SUCCEEDED(hr)) {
+		return false;
+	}
+
 	return true;
 }
 
@@ -183,6 +189,10 @@ void ImageUtil::render()
 		saturationEffect->SetValue(D2D1_SATURATION_PROP_SATURATION, saturation);
 		saturationEffect->SetInputEffect(0, lastEffect.get());
 		lastEffect = saturationEffect;
+		
+		contrastEffect->SetValue(D2D1_CONTRAST_PROP_CONTRAST, contrast);
+		contrastEffect->SetInputEffect(0, lastEffect.get());
+		lastEffect = contrastEffect;
 
 		scaleEffect->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(scale, scale));
 		scaleEffect->SetInputEffect(0, lastEffect.get());
