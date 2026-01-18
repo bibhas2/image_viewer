@@ -133,26 +133,53 @@ struct ToolsWindow : public CFrame {
     static const int 
         WIDTH = 200,
         GAP = 4,
-        LABEL_H = 14;
+        LABEL_H = 14,
+        TRACKBAR_H = 25;
 
     static const int
-        ID_GRAYSCALE = 2001;
+        ID_GRAYSCALE = 2001,
+        ID_WHITEPOINTX = 2002,
+        ID_WHITEPOINTY = 2003,
+        ID_BLACKPOINTX = 2004,
+        ID_BLACKPOINTY = 2005;
 
     MainWindow& mainWindow;
     CCheckBox grayscale;
+	CTrackBar whitePointX;
+	CTrackBar whitePointY;
+	CTrackBar blackPointX;
+	CTrackBar blackPointY;
 
     ToolsWindow(MainWindow& w) : mainWindow(w) {
 
     }
 
     void create() {
-        CFrame::create("Tools", WIDTH + GAP + GAP, 200);
+        CFrame::create("Tools", WIDTH + 4 * GAP, 200);
 
         int y = GAP;
 
         grayscale.create("Grayscale", GAP, y, WIDTH, LABEL_H, this, (HMENU) ID_GRAYSCALE);
 		//Set initial state
 		grayscale.setCheck(mainWindow.imUtil.applyGrayscale);
+
+		y += LABEL_H + GAP;
+
+		CLabel().create("White Point X", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		whitePointX.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU) ID_WHITEPOINTX);
+		whitePointX.setMin(0);
+		whitePointX.setMax(100);
+		whitePointX.setPos((int)(mainWindow.imUtil.whitePointX * 100));
+
+		y += TRACKBAR_H + GAP;
+
+		CLabel().create("White Point Y", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		whitePointY.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_WHITEPOINTY);
+		whitePointY.setMin(0);
+		whitePointY.setMax(100);
+		whitePointY.setPos((int)(mainWindow.imUtil.whitePointY * 100));
     }
 
 	//Implement onCommand
@@ -168,6 +195,34 @@ struct ToolsWindow : public CFrame {
             CFrame::onCommand(id, type, source);
         }
 	}
+
+    bool handleEvent(UINT message, WPARAM wParam, LPARAM lParam) {
+        HWND hwndCtl = (HWND)lParam;
+
+        switch (message) {
+        case WM_HSCROLL:
+            if (hwndCtl == whitePointX.getWindow()) {
+                mainWindow.imUtil.whitePointX = whitePointX.getPos() / 100.0f;
+            }
+            else if (hwndCtl == whitePointY.getWindow()) {
+                mainWindow.imUtil.whitePointY = whitePointY.getPos() / 100.0f;
+            }
+            else if (hwndCtl == blackPointX.getWindow()) {
+                mainWindow.imUtil.blackPointX = blackPointX.getPos() / 100.0f;
+            }
+            else if (hwndCtl == blackPointY.getWindow()) {
+                mainWindow.imUtil.blackPointY = blackPointY.getPos() / 100.0f;
+            }
+
+            mainWindow.imUtil.redraw();
+
+            break;
+        default:
+            return CFrame::handleEvent(message, wParam, lParam);
+        }
+
+        return true;
+    }
 };
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
