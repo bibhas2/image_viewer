@@ -155,7 +155,13 @@ struct ToolsWindow : public CFrame {
     }
 
     void create() {
-        CFrame::create("Tools", WIDTH + 4 * GAP, 200);
+        CFrame::create("Tools", WIDTH + 8 * GAP, 400);
+
+		//Hide the minimize, maximize and resize options
+        LONG_PTR style = GetWindowLongPtr(getWindow(), GWL_STYLE);
+        // Remove maximize, minimize, and thickframe (resizing border)
+        style &= ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_THICKFRAME);
+        SetWindowLongPtr(getWindow(), GWL_STYLE, style);
 
         int y = GAP;
 
@@ -180,6 +186,22 @@ struct ToolsWindow : public CFrame {
 		whitePointY.setMin(0);
 		whitePointY.setMax(100);
 		whitePointY.setPos((int)(mainWindow.imUtil.whitePointY * 100));
+
+		y += TRACKBAR_H + GAP;
+		CLabel().create("Black Point X", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		blackPointX.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_BLACKPOINTX);
+		blackPointX.setMin(0);
+		blackPointX.setMax(100);
+		blackPointX.setPos((int)(mainWindow.imUtil.blackPointX * 100));
+
+		y += TRACKBAR_H + GAP;
+		CLabel().create("Black Point Y", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		blackPointY.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_BLACKPOINTY);
+		blackPointY.setMin(0);
+		blackPointY.setMax(100);
+		blackPointY.setPos((int)(mainWindow.imUtil.blackPointY * 100));
     }
 
 	//Implement onCommand
