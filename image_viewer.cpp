@@ -73,15 +73,15 @@ public:
             //DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), m_wnd, About);
         }
         else if (id == ID_VIEW_ZOOMIN) {
-            imUtil.scale *= 1.2f;
+            imUtil.scale(imUtil.scale() * 1.2f);
             InvalidateRect(m_wnd, NULL, FALSE);
         }
         else if (id == ID_VIEW_ZOOMOUT) {
-            imUtil.scale /= 1.2f;
+            imUtil.scale(imUtil.scale() / 1.2f);
             InvalidateRect(m_wnd, NULL, FALSE);
         }
         else if (id == ID_VIEW_ACTUALSIZE) {
-            imUtil.scale = 1.0f;
+            imUtil.scale(1.0f);
             InvalidateRect(m_wnd, NULL, FALSE);
         }
         else {
@@ -171,7 +171,7 @@ struct ToolsWindow : public CFrame {
 
         grayscale.create("Grayscale", GAP, y, WIDTH, LABEL_H, this, (HMENU) ID_GRAYSCALE);
 		//Set initial state
-		grayscale.setCheck(mainWindow.imUtil.applyGrayscale);
+		grayscale.setCheck(mainWindow.imUtil.applyGrayscale());
 
 		y += LABEL_H + GAP;
 
@@ -180,7 +180,7 @@ struct ToolsWindow : public CFrame {
 		whitePointX.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU) ID_WHITEPOINTX);
 		whitePointX.setMin(0);
 		whitePointX.setMax(100);
-		whitePointX.setPos((int)(mainWindow.imUtil.whitePointX * 100));
+		whitePointX.setPos((int)(mainWindow.imUtil.whitePointX() * 100));
 
 		y += TRACKBAR_H + GAP;
 
@@ -189,7 +189,7 @@ struct ToolsWindow : public CFrame {
 		whitePointY.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_WHITEPOINTY);
 		whitePointY.setMin(0);
 		whitePointY.setMax(100);
-		whitePointY.setPos((int)(mainWindow.imUtil.whitePointY * 100));
+		whitePointY.setPos((int)(mainWindow.imUtil.whitePointY() * 100));
 
 		y += TRACKBAR_H + GAP;
 		CLabel().create("Black Point X", GAP, y, WIDTH, LABEL_H, this);
@@ -197,7 +197,7 @@ struct ToolsWindow : public CFrame {
 		blackPointX.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_BLACKPOINTX);
 		blackPointX.setMin(0);
 		blackPointX.setMax(100);
-		blackPointX.setPos((int)(mainWindow.imUtil.blackPointX * 100));
+		blackPointX.setPos((int)(mainWindow.imUtil.blackPointX() * 100));
 
 		y += TRACKBAR_H + GAP;
 		CLabel().create("Black Point Y", GAP, y, WIDTH, LABEL_H, this);
@@ -205,7 +205,7 @@ struct ToolsWindow : public CFrame {
 		blackPointY.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_BLACKPOINTY);
 		blackPointY.setMin(0);
 		blackPointY.setMax(100);
-		blackPointY.setPos((int)(mainWindow.imUtil.blackPointY * 100));
+		blackPointY.setPos((int)(mainWindow.imUtil.blackPointY() * 100));
 
         y += TRACKBAR_H + GAP;
 
@@ -214,7 +214,7 @@ struct ToolsWindow : public CFrame {
 		saturation.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
 		saturation.setMin(0);
 		saturation.setMax(100);
-		saturation.setPos((int)(mainWindow.imUtil.saturation * 100 / 2.0));
+		saturation.setPos((int)(mainWindow.imUtil.saturation() * 100 / 2.0));
 
         y += TRACKBAR_H + GAP;
 
@@ -223,7 +223,7 @@ struct ToolsWindow : public CFrame {
 		contrast.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
 		contrast.setMin(-100);
 		contrast.setMax(100);
-		contrast.setPos((int)(mainWindow.imUtil.contrast * 100));
+		contrast.setPos((int)(mainWindow.imUtil.contrast() * 100));
 
         y += TRACKBAR_H + GAP;
 
@@ -234,7 +234,7 @@ struct ToolsWindow : public CFrame {
 		// Map exposure [-2.0,2.0] to trackbar [-200,200]
 		exposure.setMin(-200);
 		exposure.setMax(200);
-		exposure.setPos((int)(mainWindow.imUtil.exposure * 100));
+		exposure.setPos((int)(mainWindow.imUtil.exposure() * 100));
 
         y += TRACKBAR_H + GAP;
     }
@@ -245,7 +245,7 @@ struct ToolsWindow : public CFrame {
 			//Toggle checkbox state
 			grayscale.setCheck(!grayscale.getCheck());
 			//Apply grayscale effect
-            mainWindow.imUtil.applyGrayscale = grayscale.getCheck();
+            mainWindow.imUtil.applyGrayscale(grayscale.getCheck());
 			mainWindow.imUtil.redraw();
         }
         else {
@@ -259,26 +259,26 @@ struct ToolsWindow : public CFrame {
         switch (message) {
         case WM_HSCROLL:
             if (hwndCtl == whitePointX.getWindow()) {
-                mainWindow.imUtil.whitePointX = whitePointX.getPos() / 100.0f;
+                mainWindow.imUtil.whitePointX(whitePointX.getPos() / 100.0f);
             }
             else if (hwndCtl == whitePointY.getWindow()) {
-                mainWindow.imUtil.whitePointY = whitePointY.getPos() / 100.0f;
+                mainWindow.imUtil.whitePointY(whitePointY.getPos() / 100.0f);
             }
             else if (hwndCtl == blackPointX.getWindow()) {
-                mainWindow.imUtil.blackPointX = blackPointX.getPos() / 100.0f;
+                mainWindow.imUtil.blackPointX(blackPointX.getPos() / 100.0f);
             }
             else if (hwndCtl == blackPointY.getWindow()) {
-                mainWindow.imUtil.blackPointY = blackPointY.getPos() / 100.0f;
+                mainWindow.imUtil.blackPointY(blackPointY.getPos() / 100.0f);
             }
             else if (hwndCtl == saturation.getWindow()) {
-                mainWindow.imUtil.saturation = saturation.getPos() / 100.0f * 2.0f;
+                mainWindow.imUtil.saturation(saturation.getPos() / 100.0f * 2.0f);
             }
             else if (hwndCtl == contrast.getWindow()) {
-                mainWindow.imUtil.contrast = contrast.getPos() / 100.0f;
+                mainWindow.imUtil.contrast(contrast.getPos() / 100.0f);
             }
 			else if (hwndCtl == exposure.getWindow()) {
 				// Trackbar gives [-200,200]; convert to [-2.0,2.0]
-				mainWindow.imUtil.exposure = exposure.getPos() / 100.0f;
+				mainWindow.imUtil.exposure(exposure.getPos() / 100.0f);
 			}
 
             mainWindow.imUtil.redraw();

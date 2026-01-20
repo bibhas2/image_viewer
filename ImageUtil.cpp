@@ -3,6 +3,17 @@
 //Some of the effects CLSIDs are defined in d2d1effects_2.h
 #include <d2d1effects_2.h>
 
+// Setter implementations moved from header
+void ImageUtil::scale(float v) { _scale = v; }
+void ImageUtil::whitePointX(float v) { _whitePointX = v; }
+void ImageUtil::whitePointY(float v) { _whitePointY = v; }
+void ImageUtil::blackPointX(float v) { _blackPointX = v; }
+void ImageUtil::blackPointY(float v) { _blackPointY = v; }
+void ImageUtil::saturation(float v) { _saturation = v; }
+void ImageUtil::contrast(float v) { _contrast = v; }
+void ImageUtil::exposure(float v) { _exposure = v; }
+void ImageUtil::applyGrayscale(boolean v) { _applyGrayscale = v; }
+
 // Constructor to initialize the ImageUtil with a window handle
 bool ImageUtil::init(HWND _wnd)
 {
@@ -182,31 +193,31 @@ void ImageUtil::render()
 
 		SmartPtr<ID2D1Effect> lastEffect;
 
-		brightnessEffect->SetValue(D2D1_BRIGHTNESS_PROP_WHITE_POINT, D2D1::Vector2F(whitePointX, whitePointY));
-		brightnessEffect->SetValue(D2D1_BRIGHTNESS_PROP_BLACK_POINT, D2D1::Vector2F(blackPointX, blackPointY));
+		brightnessEffect->SetValue(D2D1_BRIGHTNESS_PROP_WHITE_POINT, D2D1::Vector2F(_whitePointX, _whitePointY));
+		brightnessEffect->SetValue(D2D1_BRIGHTNESS_PROP_BLACK_POINT, D2D1::Vector2F(_blackPointX, _blackPointY));
 
 		brightnessEffect->SetInput(0, pBitmap.get());
 		lastEffect = brightnessEffect;
 		
-		if (applyGrayscale) {
+		if (_applyGrayscale) {
 			grayScaleEffect->SetInputEffect(0, lastEffect.get());
 			
 			lastEffect = grayScaleEffect;
 		}
 		
-		saturationEffect->SetValue(D2D1_SATURATION_PROP_SATURATION, saturation);
+		saturationEffect->SetValue(D2D1_SATURATION_PROP_SATURATION, _saturation);
 		saturationEffect->SetInputEffect(0, lastEffect.get());
 		lastEffect = saturationEffect;
 		
-		contrastEffect->SetValue(D2D1_CONTRAST_PROP_CONTRAST, contrast);
+		contrastEffect->SetValue(D2D1_CONTRAST_PROP_CONTRAST, _contrast);
 		contrastEffect->SetInputEffect(0, lastEffect.get());
 		lastEffect = contrastEffect;
 
-		exposureEffect->SetValue(D2D1_EXPOSURE_PROP_EXPOSURE_VALUE, exposure);
+		exposureEffect->SetValue(D2D1_EXPOSURE_PROP_EXPOSURE_VALUE, _exposure);
 		exposureEffect->SetInputEffect(0, lastEffect.get());
 		lastEffect = exposureEffect;
 
-		scaleEffect->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(scale, scale));
+		scaleEffect->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(_scale, _scale));
 		scaleEffect->SetInputEffect(0, lastEffect.get());
 		lastEffect = scaleEffect;
 
