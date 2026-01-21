@@ -270,40 +270,6 @@ bool ImageUtil::saveImageToFile(const wchar_t* filename) {
 	try {
 		HRESULT hr;
 
-		//Create a device for offscreen bitmap
-		SmartPtr<ID3D11Device> d3dDevice;
-		D3D_FEATURE_LEVEL featureLevel;
-
-		hr = D3D11CreateDevice(
-			nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
-			D3D11_CREATE_DEVICE_BGRA_SUPPORT, // Required for Direct2D
-			nullptr, 0, D3D11_SDK_VERSION, &d3dDevice, &featureLevel, nullptr
-		);
-		check_throw(hr);
-
-		SmartPtr<IDXGIDevice> dxgiDevice;
-
-		hr = d3dDevice->QueryInterface(IID_PPV_ARGS(&dxgiDevice));
-		check_throw(hr);
-
-		SmartPtr<ID2D1Device> d2dBitmapDevice;
-		SmartPtr<ID2D1Factory1> pFactory1;
-
-		hr = pFactory->QueryInterface(IID_PPV_ARGS(&pFactory1));
-		check_throw(hr);
-
-		hr = pFactory1->CreateDevice(dxgiDevice.get(), &d2dBitmapDevice);
-		check_throw(hr);
-
-		//Create a device context for offscreen bitmap
-		SmartPtr<ID2D1DeviceContext> d2dBitmapDeviceContext;
-
-		hr = d2dBitmapDevice->CreateDeviceContext(
-			D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
-			&d2dBitmapDeviceContext
-		);
-		check_throw(hr);
-
 		//Create a bitmap to render to
 		SmartPtr<ID2D1Bitmap1> offscreenBitmap;
 		D2D1_SIZE_F bitmapSize = pBitmap->GetSize();
@@ -316,7 +282,7 @@ bool ImageUtil::saveImageToFile(const wchar_t* filename) {
 				)
 			);
 
-		hr = d2dBitmapDeviceContext->CreateBitmap(
+		hr = pDeviceContext->CreateBitmap(
 			D2D1::SizeU(
 				static_cast<UINT32>(bitmapSize.width),
 				static_cast<UINT32>(bitmapSize.height)
@@ -329,16 +295,22 @@ bool ImageUtil::saveImageToFile(const wchar_t* filename) {
 		check_throw(hr);
 
 		//Set the bitmap as the target
-		d2dBitmapDeviceContext->SetTarget(offscreenBitmap.get());
+		SmartPtr<ID2D1Image> oldTarget;
+
+		pDeviceContext->GetTarget(&oldTarget);
+		pDeviceContext->SetTarget(offscreenBitmap.get());
 
 		//Draw the image using the effect chain
-		d2dBitmapDeviceContext->BeginDraw();
-		d2dBitmapDeviceContext->Clear(D2D1::ColorF(D2D1::ColorF::White));
-		d2dBitmapDeviceContext->DrawImage(
+		pDeviceContext->BeginDraw();
+		pDeviceContext->Clear(D2D1::ColorF(D2D1::ColorF::White));
+		pDeviceContext->DrawImage(
 			effectChain.back().get()
 		);
-		hr = d2dBitmapDeviceContext->EndDraw();
+		hr = pDeviceContext->EndDraw();
 		check_throw(hr);
+
+		//Restore old target
+		pDeviceContext->SetTarget(oldTarget.get());
 
 		//Now export the offline bitmap to a PNG file using WIC
 
