@@ -106,7 +106,14 @@ public:
     bool handleEvent(UINT message, WPARAM wParam, LPARAM lParam) {
         switch (message) {
         case WM_PAINT:
+            PAINTSTRUCT ps;
+
+			//We must call BeginPaint and EndPaint to validate the
+			//invalidated region, or else we will get continuous
+			//WM_PAINT messages.
+			BeginPaint(m_wnd, &ps);
             imUtil.render();
+			EndPaint(m_wnd, &ps);
             break;
         case WM_SIZE:
             imUtil.resize();
@@ -246,7 +253,7 @@ struct ToolsWindow : public CFrame {
 			grayscale.setCheck(!grayscale.getCheck());
 			//Apply grayscale effect
             mainWindow.imUtil.applyGrayscale(grayscale.getCheck());
-			//mainWindow.imUtil.redraw();
+			mainWindow.imUtil.redraw();
         }
         else {
             CFrame::onCommand(id, type, source);
@@ -281,7 +288,7 @@ struct ToolsWindow : public CFrame {
 				mainWindow.imUtil.exposure(exposure.getPos() / 100.0f);
 			}
 
-            //mainWindow.imUtil.redraw();
+            mainWindow.imUtil.redraw();
 
             break;
         default:
