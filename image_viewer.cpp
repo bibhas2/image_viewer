@@ -8,27 +8,14 @@
 
 #include <shobjidl.h>
 #include "ImageUtil.h"
+#include <commdlg.h>
+#include <mgui.h>
 
+#pragma comment(lib, "D3D11.lib")
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "windowscodecs.lib")
 //We need dxguid.lib for some of the CLSID and IID definitions
 #pragma comment(lib, "dxguid.lib")
-
-#define MAX_LOADSTRING 100
-
-// Global Variables:
-HINSTANCE hInst;                                // current instance
-HWND hMainWnd;
-ImageUtil imUtil;
-WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
-WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
-
-// Forward declarations of functions included in this code module:
-ATOM                MyRegisterClass(HINSTANCE hInstance);
-BOOL                InitInstance(HINSTANCE, int);
-LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
-
 
 bool select_file(HWND hWnd, bool is_folder, std::wstring& selected_name) {
     SmartPtr<IFileOpenDialog> pFileOpen;
@@ -71,200 +58,277 @@ bool select_file(HWND hWnd, bool is_folder, std::wstring& selected_name) {
 	return false;
 }
 
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
-{
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
+class MainWindow : public CFrame {
+public:
+	ImageUtil imUtil;
 
-    // TODO: Place code here.
+    void create() {
+        CFrame::create("Image Viewer", 800, 600, IDC_IMAGEVIEWER);
+		imUtil.init(m_wnd);
+	}
+
+    void onCommand(int id, int type, CWindow* source) override {
+        if (id == ID_FILE_CHOOSEFOLDER) {
+            openImage();
+        }
+        else if (id == IDM_ABOUT) {
+            //DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), m_wnd, About);
+        }
+        else if (id == ID_VIEW_ZOOMIN) {
+            imUtil.scale(imUtil.scale() * 1.2f);
+            InvalidateRect(m_wnd, NULL, FALSE);
+        }
+        else if (id == ID_VIEW_ZOOMOUT) {
+            imUtil.scale(imUtil.scale() / 1.2f);
+            InvalidateRect(m_wnd, NULL, FALSE);
+        }
+        else if (id == ID_VIEW_ACTUALSIZE) {
+            imUtil.scale(1.0f);
+            InvalidateRect(m_wnd, NULL, FALSE);
+        } else if (id == ID_FILE_EXPORTIMAGE) {
+			imUtil.saveImageToFile(L"exported_image.png");
+		}
+        else {
+            CFrame::onCommand(id, type, source);
+        }
+	}
+
+    void openImage() {
+        std::wstring selected_name;
+
+        if (!select_file(m_wnd, false, selected_name)) {
+            return;
+        }
+
+        if (!selected_name.empty()) {
+            imUtil.loadImageFromFile(selected_name.c_str());
+
+            InvalidateRect(m_wnd, NULL, FALSE);
+        }
+    }
+
+    bool handleEvent(UINT message, WPARAM wParam, LPARAM lParam) {
+        switch (message) {
+        case WM_PAINT:
+            PAINTSTRUCT ps;
+
+			//We must call BeginPaint and EndPaint to validate the
+			//invalidated region, or else we will get continuous
+			//WM_PAINT messages.
+			BeginPaint(m_wnd, &ps);
+            imUtil.render();
+			EndPaint(m_wnd, &ps);
+            break;
+        case WM_SIZE:
+            imUtil.resize();
+            break;
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+        case WM_ERASEBKGND:
+            break;
+        default:
+            return CWindow::handleEvent(message, wParam, lParam);
+        }
+
+        return true;
+    }
+
+    void onClose() {
+        CWindow::stop();
+    }
+};
+
+struct ToolsWindow : public CFrame {
+    //Define a constant for width as 30
+    static const int 
+        WIDTH = 200,
+        GAP = 4,
+        LABEL_H = 14,
+        TRACKBAR_H = 25;
+
+    static const int
+        ID_GRAYSCALE = 2001,
+        ID_WHITEPOINTX = 2002,
+        ID_WHITEPOINTY = 2003,
+        ID_BLACKPOINTX = 2004,
+        ID_BLACKPOINTY = 2005,
+        ID_EXPOSURE = 2006;
+
+    MainWindow& mainWindow;
+    CCheckBox grayscale;
+	CTrackBar whitePointX;
+	CTrackBar whitePointY;
+	CTrackBar blackPointX;
+	CTrackBar blackPointY;
+	CTrackBar saturation;
+	CTrackBar contrast;
+	CTrackBar exposure;
+
+    ToolsWindow(MainWindow& w) : mainWindow(w) {
+
+    }
+
+    void create() {
+        CFrame::create("Tools", WIDTH + 8 * GAP, 400);
+
+		//Hide the minimize, maximize and resize options
+        LONG_PTR style = GetWindowLongPtr(getWindow(), GWL_STYLE);
+        // Remove maximize, minimize, and thickframe (resizing border)
+        style &= ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_THICKFRAME);
+        SetWindowLongPtr(getWindow(), GWL_STYLE, style);
+
+        int y = GAP;
+
+        grayscale.create("Grayscale", GAP, y, WIDTH, LABEL_H, this, (HMENU) ID_GRAYSCALE);
+		//Set initial state
+		grayscale.setCheck(mainWindow.imUtil.applyGrayscale());
+
+		y += LABEL_H + GAP;
+
+		CLabel().create("White Point X", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		whitePointX.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU) ID_WHITEPOINTX);
+		whitePointX.setMin(0);
+		whitePointX.setMax(100);
+		whitePointX.setPos((int)(mainWindow.imUtil.whitePointX() * 100));
+
+		y += TRACKBAR_H + GAP;
+
+		CLabel().create("White Point Y", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		whitePointY.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_WHITEPOINTY);
+		whitePointY.setMin(0);
+		whitePointY.setMax(100);
+		whitePointY.setPos((int)(mainWindow.imUtil.whitePointY() * 100));
+
+		y += TRACKBAR_H + GAP;
+		CLabel().create("Black Point X", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		blackPointX.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_BLACKPOINTX);
+		blackPointX.setMin(0);
+		blackPointX.setMax(100);
+		blackPointX.setPos((int)(mainWindow.imUtil.blackPointX() * 100));
+
+		y += TRACKBAR_H + GAP;
+		CLabel().create("Black Point Y", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		blackPointY.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_BLACKPOINTY);
+		blackPointY.setMin(0);
+		blackPointY.setMax(100);
+		blackPointY.setPos((int)(mainWindow.imUtil.blackPointY() * 100));
+
+        y += TRACKBAR_H + GAP;
+
+		CLabel().create("Saturation", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		saturation.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
+		saturation.setMin(0);
+		saturation.setMax(100);
+		saturation.setPos((int)(mainWindow.imUtil.saturation() * 100 / 2.0));
+
+        y += TRACKBAR_H + GAP;
+
+		CLabel().create("Contrast", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		contrast.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
+		contrast.setMin(-100);
+		contrast.setMax(100);
+		contrast.setPos((int)(mainWindow.imUtil.contrast() * 100));
+
+        y += TRACKBAR_H + GAP;
+
+		// Exposure
+		CLabel().create("Exposure", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		exposure.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_EXPOSURE);
+		// Map exposure [-2.0,2.0] to trackbar [-200,200]
+		exposure.setMin(-200);
+		exposure.setMax(200);
+		exposure.setPos((int)(mainWindow.imUtil.exposure() * 100));
+
+        y += TRACKBAR_H + GAP;
+    }
+
+	//Implement onCommand
+    void onCommand(int id, int type, CWindow* source) override {
+        if (id == ID_GRAYSCALE) {
+			//Toggle checkbox state
+			grayscale.setCheck(!grayscale.getCheck());
+			//Apply grayscale effect
+            mainWindow.imUtil.applyGrayscale(grayscale.getCheck());
+			mainWindow.imUtil.redraw();
+        }
+        else {
+            CFrame::onCommand(id, type, source);
+        }
+	}
+
+    bool handleEvent(UINT message, WPARAM wParam, LPARAM lParam) {
+        HWND hwndCtl = (HWND)lParam;
+
+        switch (message) {
+        case WM_HSCROLL:
+            if (hwndCtl == whitePointX.getWindow()) {
+                mainWindow.imUtil.whitePointX(whitePointX.getPos() / 100.0f);
+            }
+            else if (hwndCtl == whitePointY.getWindow()) {
+                mainWindow.imUtil.whitePointY(whitePointY.getPos() / 100.0f);
+            }
+            else if (hwndCtl == blackPointX.getWindow()) {
+                mainWindow.imUtil.blackPointX(blackPointX.getPos() / 100.0f);
+            }
+            else if (hwndCtl == blackPointY.getWindow()) {
+                mainWindow.imUtil.blackPointY(blackPointY.getPos() / 100.0f);
+            }
+            else if (hwndCtl == saturation.getWindow()) {
+                mainWindow.imUtil.saturation(saturation.getPos() / 100.0f * 2.0f);
+            }
+            else if (hwndCtl == contrast.getWindow()) {
+                mainWindow.imUtil.contrast(contrast.getPos() / 100.0f);
+            }
+			else if (hwndCtl == exposure.getWindow()) {
+				// Trackbar gives [-200,200]; convert to [-2.0,2.0]
+				mainWindow.imUtil.exposure(exposure.getPos() / 100.0f);
+			}
+
+            mainWindow.imUtil.redraw();
+
+            break;
+        default:
+            return CFrame::handleEvent(message, wParam, lParam);
+        }
+
+        return true;
+    }
+};
+
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPWSTR    lpCmdLine,
+    _In_ int       nCmdShow)
+{
+	CWindow::init(hInstance);
+
     HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
     if (!SUCCEEDED(hr)) {
         return FALSE;
     }
 
-    // Initialize global strings
-    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_IMAGEVIEWER, szWindowClass, MAX_LOADSTRING);
-    MyRegisterClass(hInstance);
+	MainWindow mainWin;
 
-    // Perform application initialization:
-    if (!InitInstance (hInstance, nCmdShow))
-    {
-        return FALSE;
-    }
+    mainWin.create();
+    mainWin.show();
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_IMAGEVIEWER));
+    ToolsWindow toolsWindow(mainWin);
 
-    MSG msg;
+    toolsWindow.create();
+    toolsWindow.show();
 
-    // Main message loop:
-    while (GetMessage(&msg, nullptr, 0, 0))
-    {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
+	CWindow::loop();
 
-    return (int) msg.wParam;
-}
+    CoUninitialize();
 
-
-
-//
-//  FUNCTION: MyRegisterClass()
-//
-//  PURPOSE: Registers the window class.
-//
-ATOM MyRegisterClass(HINSTANCE hInstance)
-{
-    WNDCLASSEXW wcex;
-
-    wcex.cbSize = sizeof(WNDCLASSEX);
-
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
-    wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_IMAGEVIEWER));
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_IMAGEVIEWER);
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
-
-    return RegisterClassExW(&wcex);
-}
-
-//
-//   FUNCTION: InitInstance(HINSTANCE, int)
-//
-//   PURPOSE: Saves instance handle and creates main window
-//
-//   COMMENTS:
-//
-//        In this function, we save the instance handle in a global variable and
-//        create and display the main program window.
-//
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
-{
-   hInst = hInstance; // Store instance handle in our global variable
-
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
-
-   if (!hWnd)
-   {
-      return FALSE;
-   }
-
-   hMainWnd = hWnd;
-   imUtil.init(hMainWnd);
-
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
-
-   return TRUE;
-}
-
-void open_image() {
-	std::wstring selected_name;
-	
-	if (!select_file(hMainWnd, false, selected_name)) {
-		return;
-	}
-
-	if (!selected_name.empty()) {
-		imUtil.loadImageFromFile(selected_name.c_str());
-
-		InvalidateRect(hMainWnd, NULL, FALSE);
-	}
-}
-//
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  PURPOSE: Processes messages for the main window.
-//
-//  WM_COMMAND  - process the application menu
-//  WM_PAINT    - Paint the main window
-//  WM_DESTROY  - post a quit message and return
-//
-//
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    switch (message)
-    {
-    case WM_COMMAND:
-        {
-            int wmId = LOWORD(wParam);
-            // Parse the menu selections:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case ID_FILE_CHOOSEFOLDER:
-                open_image();
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-			case ID_VIEW_ZOOMIN:
-				imUtil.scale *= 1.2f;
-				InvalidateRect(hMainWnd, NULL, FALSE);
-				break;
-			case ID_VIEW_ZOOMOUT:
-				imUtil.scale /= 1.2f;
-				InvalidateRect(hMainWnd, NULL, FALSE);
-				break;
-			case ID_VIEW_ACTUALSIZE:
-				imUtil.scale = 1.0f;
-				InvalidateRect(hMainWnd, NULL, FALSE);
-				break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
-        }
-        break;
-    case WM_PAINT:
-		imUtil.render();
-        break;
-	case WM_SIZE:
-		imUtil.resize();
-		break;
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-	case WM_ERASEBKGND:
-		return 1;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
-    }
-    return 0;
-}
-
-// Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    UNREFERENCED_PARAMETER(lParam);
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
-
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
-    }
-    return (INT_PTR)FALSE;
+	return 0;
 }
