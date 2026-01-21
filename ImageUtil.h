@@ -60,6 +60,7 @@ struct ImageUtil
 
 	bool init(HWND wnd);
 	bool loadImageFromFile(const wchar_t* filename);
+	bool saveImageToFile(const wchar_t* filename);
 	void resize();
 	void render();
 	void redraw();

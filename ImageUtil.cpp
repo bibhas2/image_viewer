@@ -2,6 +2,7 @@
 #include "ImageUtil.h"
 //Some of the effects CLSIDs are defined in d2d1effects_2.h
 #include <d2d1effects_2.h>
+#include <d3d11.h>
 
 // Setter implementations moved from header
 void ImageUtil::scale(float v) { 
@@ -253,4 +254,166 @@ void ImageUtil::render()
 	}
 
 	pDeviceContext->EndDraw();
+}
+
+void check_throw(HRESULT hr) {
+	if (!SUCCEEDED(hr)) {
+		throw hr;
+	}
+}
+
+bool ImageUtil::saveImageToFile(const wchar_t* filename) {
+	if (!pBitmap) {
+		return false;
+	}
+
+	try {
+		HRESULT hr;
+
+		//Create a device for offscreen bitmap
+		SmartPtr<ID3D11Device> d3dDevice;
+		D3D_FEATURE_LEVEL featureLevel;
+
+		hr = D3D11CreateDevice(
+			nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
+			D3D11_CREATE_DEVICE_BGRA_SUPPORT, // Required for Direct2D
+			nullptr, 0, D3D11_SDK_VERSION, &d3dDevice, &featureLevel, nullptr
+		);
+		check_throw(hr);
+
+		SmartPtr<IDXGIDevice> dxgiDevice;
+
+		hr = d3dDevice->QueryInterface(IID_PPV_ARGS(&dxgiDevice));
+		check_throw(hr);
+
+		SmartPtr<ID2D1Device> d2dBitmapDevice;
+		SmartPtr<ID2D1Factory1> pFactory1;
+
+		hr = pFactory->QueryInterface(IID_PPV_ARGS(&pFactory1));
+		check_throw(hr);
+
+		hr = pFactory1->CreateDevice(dxgiDevice.get(), &d2dBitmapDevice);
+		check_throw(hr);
+
+		//Create a device context for offscreen bitmap
+		SmartPtr<ID2D1DeviceContext> d2dBitmapDeviceContext;
+
+		hr = d2dBitmapDevice->CreateDeviceContext(
+			D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
+			&d2dBitmapDeviceContext
+		);
+		check_throw(hr);
+
+		//Create a bitmap to render to
+		SmartPtr<ID2D1Bitmap1> offscreenBitmap;
+		D2D1_SIZE_F bitmapSize = pBitmap->GetSize();
+		D2D1_BITMAP_PROPERTIES1 bitmapProperties =
+			D2D1::BitmapProperties1(
+				D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
+				D2D1::PixelFormat(
+					DXGI_FORMAT_B8G8R8A8_UNORM,
+					D2D1_ALPHA_MODE_PREMULTIPLIED
+				)
+			);
+
+		hr = d2dBitmapDeviceContext->CreateBitmap(
+			D2D1::SizeU(
+				static_cast<UINT32>(bitmapSize.width),
+				static_cast<UINT32>(bitmapSize.height)
+			),
+			nullptr,
+			0,
+			bitmapProperties,
+			&offscreenBitmap
+		);
+		check_throw(hr);
+
+		//Set the bitmap as the target
+		d2dBitmapDeviceContext->SetTarget(offscreenBitmap.get());
+
+		//Draw the image using the effect chain
+		d2dBitmapDeviceContext->BeginDraw();
+		d2dBitmapDeviceContext->Clear(D2D1::ColorF(D2D1::ColorF::White));
+		d2dBitmapDeviceContext->DrawImage(
+			effectChain.back().get()
+		);
+		hr = d2dBitmapDeviceContext->EndDraw();
+		check_throw(hr);
+
+		//Now export the offline bitmap to a PNG file using WIC
+
+		SmartPtr<IWICStream> stream;
+
+		hr = pWICFactory->CreateStream(&stream);
+		check_throw(hr);
+
+		hr = stream->InitializeFromFilename(
+			filename,
+			GENERIC_WRITE
+		);
+		check_throw(hr);
+
+		SmartPtr<IWICImagingFactory2> wicFactory2;
+
+		hr = pWICFactory->QueryInterface(IID_PPV_ARGS(&wicFactory2));
+		check_throw(hr);
+
+		GUID wicFormat = GUID_ContainerFormatPng;
+		SmartPtr<IWICBitmapEncoder> wicBitmapEncoder;
+
+		hr = wicFactory2->CreateEncoder(
+			wicFormat,
+			nullptr,    // No preferred codec vendor.
+			&wicBitmapEncoder
+		);
+		check_throw(hr);
+
+		hr = wicBitmapEncoder->Initialize(
+			stream.get(),
+			WICBitmapEncoderNoCache
+		);
+		check_throw(hr);
+
+		SmartPtr<IWICBitmapFrameEncode> wicBitmapFrameEncode;
+
+		hr = wicBitmapEncoder->CreateNewFrame(
+			&wicBitmapFrameEncode,
+			nullptr
+		);
+		check_throw(hr);
+
+		hr = wicBitmapFrameEncode->Initialize(nullptr);
+		check_throw(hr);
+
+		SmartPtr<ID2D1Device> d2dDevice;
+		SmartPtr<IWICImageEncoder> imageEncoder;
+
+		pDeviceContext->GetDevice(&d2dDevice);
+
+		hr = wicFactory2->CreateImageEncoder(
+			d2dDevice.get(),
+			&imageEncoder
+		);
+		check_throw(hr);
+
+		hr = imageEncoder->WriteFrame(
+			offscreenBitmap.get(),
+			wicBitmapFrameEncode.get(),
+			nullptr
+		);
+		check_throw(hr);
+
+		hr = wicBitmapFrameEncode->Commit();
+		check_throw(hr);
+
+		hr = wicBitmapEncoder->Commit();
+		check_throw(hr);
+
+		hr = stream->Commit(STGC_DEFAULT);
+		check_throw(hr);
+
+		return true;
+	} catch (HRESULT hr) {
+		return false;
+	}
 }

@@ -10,6 +10,8 @@
 #include "ImageUtil.h"
 #include <commdlg.h>
 #include <mgui.h>
+
+#pragma comment(lib, "D3D11.lib")
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "windowscodecs.lib")
 //We need dxguid.lib for some of the CLSID and IID definitions
@@ -83,7 +85,9 @@ public:
         else if (id == ID_VIEW_ACTUALSIZE) {
             imUtil.scale(1.0f);
             InvalidateRect(m_wnd, NULL, FALSE);
-        }
+        } else if (id == ID_FILE_EXPORTIMAGE) {
+			imUtil.saveImageToFile(L"exported_image.png");
+		}
         else {
             CFrame::onCommand(id, type, source);
         }
