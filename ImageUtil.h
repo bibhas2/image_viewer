@@ -3,6 +3,7 @@
 #include "com_ptr.h"
 #include <d2d1_2.h>
 #include <wincodec.h>
+#include <vector>
 
 struct ImageUtil
 {
@@ -55,11 +56,13 @@ struct ImageUtil
 	SmartPtr<ID2D1Effect> saturationEffect;
 	SmartPtr<ID2D1Effect> contrastEffect;
 	SmartPtr<ID2D1Effect> exposureEffect; // exposure effect
+	std::vector<SmartPtr<ID2D1Effect>> effectChain;
 
 	bool init(HWND wnd);
 	bool loadImageFromFile(const wchar_t* filename);
 	void resize();
 	void render();
 	void redraw();
+	void buildEffectChain();
 };
 

@@ -246,7 +246,7 @@ struct ToolsWindow : public CFrame {
 			grayscale.setCheck(!grayscale.getCheck());
 			//Apply grayscale effect
             mainWindow.imUtil.applyGrayscale(grayscale.getCheck());
-			mainWindow.imUtil.redraw();
+			//mainWindow.imUtil.redraw();
         }
         else {
             CFrame::onCommand(id, type, source);
@@ -281,7 +281,7 @@ struct ToolsWindow : public CFrame {
 				mainWindow.imUtil.exposure(exposure.getPos() / 100.0f);
 			}
 
-            mainWindow.imUtil.redraw();
+            //mainWindow.imUtil.redraw();
 
             break;
         default:
