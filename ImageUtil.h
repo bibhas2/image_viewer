@@ -44,6 +44,10 @@ struct ImageUtil
 	boolean applyGrayscale() const { return _applyGrayscale; }
 	void applyGrayscale(boolean v);
 
+	bool _applyInvert = false;
+	boolean applyInvert() const { return _applyInvert; }
+	void applyInvert(boolean v);
+
 	HWND wnd = nullptr;
 
 	SmartPtr<ID2D1Factory> pFactory;
@@ -53,6 +57,7 @@ struct ImageUtil
 	SmartPtr <IWICImagingFactory> pWICFactory;
 	SmartPtr<ID2D1Effect> scaleEffect;
 	SmartPtr<ID2D1Effect> grayScaleEffect;
+	SmartPtr<ID2D1Effect> invertEffect;
 	SmartPtr<ID2D1Effect> brightnessEffect;
 	SmartPtr<ID2D1Effect> saturationEffect;
 	SmartPtr<ID2D1Effect> contrastEffect;

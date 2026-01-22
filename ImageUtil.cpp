@@ -46,6 +46,12 @@ void ImageUtil::applyGrayscale(boolean v) {
 	//Rebuild the effect chain
 	buildEffectChain();
 }
+void ImageUtil::applyInvert(boolean v) { 
+	_applyInvert = v; 
+
+	//Rebuild the effect chain
+	buildEffectChain();
+}
 
 // Constructor to initialize the ImageUtil with a window handle
 bool ImageUtil::init(HWND _wnd)
@@ -103,6 +109,12 @@ bool ImageUtil::init(HWND _wnd)
 	}
 
 	hr = pDeviceContext->CreateEffect(CLSID_D2D1Grayscale, &grayScaleEffect);
+
+	if (!SUCCEEDED(hr)) {
+		return false;
+	}
+
+	hr = pDeviceContext->CreateEffect(CLSID_D2D1Invert, &invertEffect);
 
 	if (!SUCCEEDED(hr)) {
 		return false;
@@ -214,6 +226,9 @@ bool ImageUtil::loadImageFromFile(const wchar_t* filename)
 void ImageUtil::buildEffectChain() {
 	effectChain.clear();
 
+	if (_applyInvert) {
+		effectChain.push_back(invertEffect);
+	}
 	effectChain.push_back(brightnessEffect);
 	effectChain.push_back(saturationEffect);
 	effectChain.push_back(contrastEffect);
@@ -227,6 +242,9 @@ void ImageUtil::buildEffectChain() {
 	for (size_t i = 1; i < effectChain.size(); ++i) {
 		effectChain[i]->SetInputEffect(0, effectChain[i - 1].get());
 	}
+
+	//Set the bitmap as the input to the first effect in the chain
+	effectChain.front()->SetInput(0, pBitmap.get());
 
 	//Set the last effect as input to the scale effect
 	scaleEffect->SetInputEffect(0, effectChain.back().get());

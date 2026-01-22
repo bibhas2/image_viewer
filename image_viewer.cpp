@@ -201,10 +201,12 @@ struct ToolsWindow : public CFrame {
         ID_WHITEPOINTY = 2003,
         ID_BLACKPOINTX = 2004,
         ID_BLACKPOINTY = 2005,
-        ID_EXPOSURE = 2006;
+        ID_EXPOSURE = 2006,
+	    ID_INVERT = 2007;
 
     MainWindow& mainWindow;
     CCheckBox grayscale;
+	CCheckBox invert;
 	CTrackBar whitePointX;
 	CTrackBar whitePointY;
 	CTrackBar blackPointX;
@@ -218,7 +220,7 @@ struct ToolsWindow : public CFrame {
     }
 
     void create() {
-        CFrame::create("Tools", WIDTH + 8 * GAP, 400);
+        CFrame::create("Tools", WIDTH + 8 * GAP, 500);
 
 		//Hide the minimize, maximize and resize options
         LONG_PTR style = GetWindowLongPtr(getWindow(), GWL_STYLE);
@@ -228,10 +230,15 @@ struct ToolsWindow : public CFrame {
 
         int y = GAP;
 
+		//Create invert checkbox
+		invert.create("Invert Colors", GAP, y, WIDTH, LABEL_H, this, (HMENU)ID_INVERT);
+		//Set initial state
+		invert.setCheck(mainWindow.imUtil.applyInvert());
+		y += LABEL_H + GAP;
+
         grayscale.create("Grayscale", GAP, y, WIDTH, LABEL_H, this, (HMENU) ID_GRAYSCALE);
 		//Set initial state
 		grayscale.setCheck(mainWindow.imUtil.applyGrayscale());
-
 		y += LABEL_H + GAP;
 
 		CLabel().create("White Point X", GAP, y, WIDTH, LABEL_H, this);
@@ -306,6 +313,13 @@ struct ToolsWindow : public CFrame {
 			//Apply grayscale effect
             mainWindow.imUtil.applyGrayscale(grayscale.getCheck());
 			mainWindow.imUtil.redraw();
+		}
+        else if (id == ID_INVERT) {
+            //Toggle checkbox state
+            invert.setCheck(!invert.getCheck());
+            //Apply invert effect
+            mainWindow.imUtil.applyInvert(invert.getCheck());
+            mainWindow.imUtil.redraw();
         }
         else {
             CFrame::onCommand(id, type, source);
