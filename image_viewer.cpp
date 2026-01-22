@@ -207,6 +207,8 @@ struct ToolsWindow : public CFrame {
     MainWindow& mainWindow;
     CCheckBox grayscale;
 	CCheckBox invert;
+	CTrackBar highlights;
+	CTrackBar shadows;
 	CTrackBar whitePointX;
 	CTrackBar whitePointY;
 	CTrackBar blackPointX;
@@ -222,7 +224,7 @@ struct ToolsWindow : public CFrame {
     }
 
     void create() {
-        CFrame::create("Tools", WIDTH + 8 * GAP, 540);
+        CFrame::create("Tools", WIDTH + 8 * GAP, 640);
 
 		//Hide the minimize, maximize and resize options
         LONG_PTR style = GetWindowLongPtr(getWindow(), GWL_STYLE);
@@ -242,6 +244,24 @@ struct ToolsWindow : public CFrame {
 		//Set initial state
 		grayscale.setCheck(mainWindow.imUtil.applyGrayscale());
 		y += LABEL_H + GAP;
+
+		// Highlights
+		CLabel().create("Highlights", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		highlights.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
+		highlights.setMin(-100);
+		highlights.setMax(100);
+        highlights.setPos((int)(mainWindow.imUtil.highlights() * 100));
+		y += TRACKBAR_H + GAP;
+
+		// Shadows
+		CLabel().create("Shadows", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		shadows.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
+		shadows.setMin(-100);
+		shadows.setMax(100);
+		shadows.setPos((int)(mainWindow.imUtil.shadows() * 100));
+		y += TRACKBAR_H + GAP;
 
 		CLabel().create("White Point X", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
@@ -378,6 +398,12 @@ struct ToolsWindow : public CFrame {
 			}
 			else if (hwndCtl == tint.getWindow()) {
 				mainWindow.imUtil.tint(tint.getPos() / 100.0f);
+			}
+			else if (hwndCtl == highlights.getWindow()) {
+				mainWindow.imUtil.highlights(highlights.getPos() / 100.0f);
+			}
+			else if (hwndCtl == shadows.getWindow()) {
+				mainWindow.imUtil.shadows(shadows.getPos() / 100.0f);
 			}
 
             mainWindow.imUtil.redraw();

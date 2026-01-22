@@ -48,6 +48,14 @@ struct ImageUtil
 	float tint() const { return _tint; }
 	void tint(float v);
 
+	float _highlights = 0.0f; // highlights adjustment in range [-1.0, 1.0]
+	float highlights() const { return _highlights; }
+	void highlights(float v);
+
+	float _shadows = 0.0f; // shadows adjustment in range [-1.0, 1.0]
+	float shadows() const { return _shadows; }
+	void shadows(float v);
+
 	boolean _applyGrayscale = false;
 	boolean applyGrayscale() const { return _applyGrayscale; }
 	void applyGrayscale(boolean v);
@@ -71,6 +79,7 @@ struct ImageUtil
 	SmartPtr<ID2D1Effect> contrastEffect;
 	SmartPtr<ID2D1Effect> exposureEffect;
 	SmartPtr<ID2D1Effect> temperatureTintEffect;
+	SmartPtr<ID2D1Effect> highlightsAndShadowsEffect;
 	std::vector<SmartPtr<ID2D1Effect>> effectChain;
 
 	bool init(HWND wnd);

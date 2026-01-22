@@ -48,6 +48,14 @@ void ImageUtil::tint(float v) {
 	_tint = v; 
 	temperatureTintEffect->SetValue(D2D1_TEMPERATUREANDTINT_PROP_TINT, _tint);
 }
+void ImageUtil::highlights(float v) { 
+	_highlights = v; 
+	highlightsAndShadowsEffect->SetValue(D2D1_HIGHLIGHTSANDSHADOWS_PROP_HIGHLIGHTS, _highlights);
+}
+void ImageUtil::shadows(float v) { 
+	_shadows = v; 
+	highlightsAndShadowsEffect->SetValue(D2D1_HIGHLIGHTSANDSHADOWS_PROP_SHADOWS, _shadows);
+}
 void ImageUtil::applyGrayscale(boolean v) { 
 	_applyGrayscale = v; 
 
@@ -160,6 +168,13 @@ bool ImageUtil::init(HWND _wnd)
 		return false;
 	}
 
+	// Create highlights and shadows effect
+	hr = pDeviceContext->CreateEffect(CLSID_D2D1HighlightsShadows, &highlightsAndShadowsEffect);
+
+	if (!SUCCEEDED(hr)) {
+		return false;
+	}
+
 	// Build the effect chain
 	buildEffectChain();
 
@@ -243,6 +258,7 @@ void ImageUtil::buildEffectChain() {
 	if (_applyInvert) {
 		effectChain.push_back(invertEffect);
 	}
+	effectChain.push_back(highlightsAndShadowsEffect);
 	effectChain.push_back(brightnessEffect);
 	effectChain.push_back(saturationEffect);
 	effectChain.push_back(contrastEffect);
