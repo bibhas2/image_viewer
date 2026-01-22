@@ -40,6 +40,14 @@ void ImageUtil::exposure(float v) {
 	_exposure = v; 
 	exposureEffect->SetValue(D2D1_EXPOSURE_PROP_EXPOSURE_VALUE, _exposure);
 }
+void ImageUtil::temperature(float v) { 
+	_temperature = v; 
+	temperatureTintEffect->SetValue(D2D1_TEMPERATUREANDTINT_PROP_TEMPERATURE, _temperature);
+}
+void ImageUtil::tint(float v) { 
+	_tint = v; 
+	temperatureTintEffect->SetValue(D2D1_TEMPERATUREANDTINT_PROP_TINT, _tint);
+}
 void ImageUtil::applyGrayscale(boolean v) { 
 	_applyGrayscale = v; 
 
@@ -142,8 +150,14 @@ bool ImageUtil::init(HWND _wnd)
 	hr = pDeviceContext->CreateEffect(CLSID_D2D1Exposure, &exposureEffect);
 
 	if (!SUCCEEDED(hr)) {
-		// If exposure effect is not available, continue without it
-		exposureEffect.reset();
+		return false;
+	}
+
+	// Create temperature tint effect
+	hr = pDeviceContext->CreateEffect(CLSID_D2D1TemperatureTint, &temperatureTintEffect);
+
+	if (!SUCCEEDED(hr)) {
+		return false;
 	}
 
 	// Build the effect chain
@@ -233,6 +247,7 @@ void ImageUtil::buildEffectChain() {
 	effectChain.push_back(saturationEffect);
 	effectChain.push_back(contrastEffect);
 	effectChain.push_back(exposureEffect);
+	effectChain.push_back(temperatureTintEffect);
 
 	if (_applyGrayscale) {
 		effectChain.push_back(grayScaleEffect);

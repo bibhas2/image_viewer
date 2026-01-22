@@ -214,13 +214,15 @@ struct ToolsWindow : public CFrame {
 	CTrackBar saturation;
 	CTrackBar contrast;
 	CTrackBar exposure;
+	CTrackBar temperature;
+	CTrackBar tint;
 
     ToolsWindow(MainWindow& w) : mainWindow(w) {
 
     }
 
     void create() {
-        CFrame::create("Tools", WIDTH + 8 * GAP, 500);
+        CFrame::create("Tools", WIDTH + 8 * GAP, 540);
 
 		//Hide the minimize, maximize and resize options
         LONG_PTR style = GetWindowLongPtr(getWindow(), GWL_STYLE);
@@ -303,6 +305,24 @@ struct ToolsWindow : public CFrame {
 		exposure.setPos((int)(mainWindow.imUtil.exposure() * 100));
 
         y += TRACKBAR_H + GAP;
+
+		// Temperature
+		CLabel().create("Temperature", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		temperature.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
+		temperature.setMin(-100);
+		temperature.setMax(100);
+		temperature.setPos((int)(mainWindow.imUtil.temperature() * 100));
+		y += TRACKBAR_H + GAP;
+
+		// Tint
+		CLabel().create("Tint", GAP, y, WIDTH, LABEL_H, this);
+		y += LABEL_H + GAP;
+		tint.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
+		tint.setMin(-100);
+		tint.setMax(100);
+		tint.setPos((int)(mainWindow.imUtil.tint() * 100));
+        y += TRACKBAR_H + GAP;
     }
 
 	//Implement onCommand
@@ -352,6 +372,12 @@ struct ToolsWindow : public CFrame {
 			else if (hwndCtl == exposure.getWindow()) {
 				// Trackbar gives [-200,200]; convert to [-2.0,2.0]
 				mainWindow.imUtil.exposure(exposure.getPos() / 100.0f);
+			}
+			else if (hwndCtl == temperature.getWindow()) {
+				mainWindow.imUtil.temperature(temperature.getPos() / 100.0f);
+			}
+			else if (hwndCtl == tint.getWindow()) {
+				mainWindow.imUtil.tint(tint.getPos() / 100.0f);
 			}
 
             mainWindow.imUtil.redraw();
