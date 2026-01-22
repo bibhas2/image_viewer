@@ -17,45 +17,71 @@
 //We need dxguid.lib for some of the CLSID and IID definitions
 #pragma comment(lib, "dxguid.lib")
 
-bool select_file(HWND hWnd, bool is_folder, std::wstring& selected_name) {
-    SmartPtr<IFileOpenDialog> pFileOpen;
+bool select_file(HWND hWnd, bool is_open, std::wstring& selected_name) {
+    SmartPtr<IFileDialog> pFileSelector;
+    //SmartPtr<IFileOpenDialog> pFileOpenDialog;
+    //SmartPtr<IFileSaveDialog> pFileSaveDialog;
 
-    // 2. Create the FileOpenDialog object
-    HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
-        IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+    HRESULT hr = S_OK;
+        
+    if (is_open) {
+        hr = CoCreateInstance(CLSID_FileOpenDialog, 
+            NULL, 
+            CLSCTX_INPROC_SERVER,
+            IID_PPV_ARGS(&pFileSelector));
+        check_throw(hr);
+    } else {
+        hr = CoCreateInstance(CLSID_FileSaveDialog, 
+            NULL, 
+            CLSCTX_INPROC_SERVER,
+            IID_PPV_ARGS(&pFileSelector));
+        check_throw(hr);
+	}
 
-    if (SUCCEEDED(hr)) {
-        // 3. Set the dialog to "Pick Folders" mode
-        DWORD dwOptions;
-        if (is_folder && SUCCEEDED(pFileOpen->GetOptions(&dwOptions))) {
-            pFileOpen->SetOptions(dwOptions | FOS_PICKFOLDERS);
-        }
+    COMDLG_FILTERSPEC rgSpec[] =
+    {
+        { L"JPEG Image", L"*.jpg;*.jpeg" },
+        { L"PNG Image", L"*.png" },
+        { L"All Files", L"*.*" },
+    };
 
-        // 4. Show the dialog box
-        hr = pFileOpen->Show(hWnd);
+	hr = pFileSelector->SetFileTypes(ARRAYSIZE(rgSpec), rgSpec);
+	check_throw(hr);
 
-        // 5. Get the result (if the user didn't cancel)
-        if (SUCCEEDED(hr)) {
-            SmartPtr<IShellItem> pItem;
-            hr = pFileOpen->GetResult(&pItem);
-            if (SUCCEEDED(hr)) {
-                PWSTR pszFilePath;
-                // Get the file system path from the Shell item
-                hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+    hr = pFileSelector->SetFileTypeIndex(0);
+	check_throw(hr);
 
-                // Display the chosen path
-                if (SUCCEEDED(hr)) {
-                    selected_name = pszFilePath;
+    hr = pFileSelector->Show(hWnd);
 
-                    CoTaskMemFree(pszFilePath); // Free the string allocated by the Shell
+    if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED)) {
+        return false; // User cancelled the dialog
+	}
 
-                    return true;
-                }
-            }
-        }
-    }
+	check_throw(hr);
 
-	return false;
+    SmartPtr<IShellItem> pItem;
+
+    hr = pFileSelector->GetResult(&pItem);
+	check_throw(hr);
+
+    PWSTR pszFilePath;
+    // Get the file system path from the Shell item
+    hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+	check_throw(hr);
+
+    selected_name = pszFilePath;
+
+    CoTaskMemFree(pszFilePath);
+
+	return true;
+}
+
+bool select_open_file(HWND hWnd, std::wstring& selected_name) {
+	return select_file(hWnd, true, selected_name);
+}
+
+bool select_save_file(HWND hWnd, std::wstring& selected_name) {
+    return select_file(hWnd, false, selected_name);
 }
 
 class MainWindow : public CFrame {
@@ -86,17 +112,39 @@ public:
             imUtil.scale(1.0f);
             InvalidateRect(m_wnd, NULL, FALSE);
         } else if (id == ID_FILE_EXPORTIMAGE) {
-			imUtil.saveImageToFile(L"exported_image.png");
+			saveImage();
 		}
         else {
             CFrame::onCommand(id, type, source);
         }
 	}
 
+    void saveImage() {
+        std::wstring selected_name;
+
+        if (!select_save_file(m_wnd, selected_name)) {
+            return;
+        }
+
+        if (selected_name.empty()) {
+            return;
+        }
+
+        GUID formatId;
+
+        if (!imUtil.formatForFileExtension(selected_name, formatId)) {
+            messageBox("Unsupported file extension.\n\nOnly JPEG and PNG files are supported.");
+
+            return;
+		}
+
+        imUtil.saveImageToFile(selected_name);
+	}
+
     void openImage() {
         std::wstring selected_name;
 
-        if (!select_file(m_wnd, false, selected_name)) {
+        if (!select_open_file(m_wnd, selected_name)) {
             return;
         }
 

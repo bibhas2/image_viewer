@@ -262,8 +262,15 @@ void check_throw(HRESULT hr) {
 	}
 }
 
-bool ImageUtil::saveImageToFile(const wchar_t* filename) {
+bool ImageUtil::saveImageToFile(const std::wstring& filename) {
 	if (!pBitmap) {
+		return false;
+	}
+
+	GUID wicFormat = GUID_ContainerFormatPng;
+
+	if (!formatForFileExtension(const_cast<std::wstring&>(filename), wicFormat)) {
+		//Unsupported format
 		return false;
 	}
 
@@ -320,7 +327,7 @@ bool ImageUtil::saveImageToFile(const wchar_t* filename) {
 		check_throw(hr);
 
 		hr = stream->InitializeFromFilename(
-			filename,
+			filename.c_str(),
 			GENERIC_WRITE
 		);
 		check_throw(hr);
@@ -330,7 +337,6 @@ bool ImageUtil::saveImageToFile(const wchar_t* filename) {
 		hr = pWICFactory->QueryInterface(IID_PPV_ARGS(&wicFactory2));
 		check_throw(hr);
 
-		GUID wicFormat = GUID_ContainerFormatPng;
 		SmartPtr<IWICBitmapEncoder> wicBitmapEncoder;
 
 		hr = wicFactory2->CreateEncoder(
@@ -388,4 +394,26 @@ bool ImageUtil::saveImageToFile(const wchar_t* filename) {
 	} catch (HRESULT hr) {
 		return false;
 	}
+}
+
+bool ImageUtil::formatForFileExtension(std::wstring& file_name, GUID& wicFormatId) {
+	size_t dot_pos = file_name.find_last_of(L'.');
+
+	if (dot_pos == std::wstring::npos) {
+		return false;
+	}
+
+	std::wstring extension = file_name.substr(dot_pos);
+
+	if (extension == L".png" || extension == L".PNG") {
+		wicFormatId = GUID_ContainerFormatPng;
+
+		return true;
+	} else if (extension == L".jpg" || extension == L".jpeg" || extension == L".JPG" || extension == L".JPEG") {
+		wicFormatId = GUID_ContainerFormatJpeg;
+		return true;
+	} 
+
+	//Add more formats here as needed
+	return false;
 }

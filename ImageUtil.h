@@ -4,6 +4,7 @@
 #include <d2d1_2.h>
 #include <wincodec.h>
 #include <vector>
+#include <string>
 
 struct ImageUtil
 {
@@ -60,10 +61,12 @@ struct ImageUtil
 
 	bool init(HWND wnd);
 	bool loadImageFromFile(const wchar_t* filename);
-	bool saveImageToFile(const wchar_t* filename);
+	bool saveImageToFile(const std::wstring& filename);
 	void resize();
 	void render();
 	void redraw();
 	void buildEffectChain();
+	bool formatForFileExtension(std::wstring& file_name, GUID& wicFormatId);
 };
 
+void check_throw(HRESULT hr);
