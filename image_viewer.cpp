@@ -111,7 +111,12 @@ public:
         else if (id == ID_VIEW_ACTUALSIZE) {
             imUtil.scale(1.0f);
             InvalidateRect(m_wnd, NULL, FALSE);
-        } else if (id == ID_FILE_EXPORTIMAGE) {
+        }
+        else if (id == ID_VIEW_FITWINDOW) {
+			imUtil.scaleToFit();
+            InvalidateRect(m_wnd, NULL, FALSE);
+        }
+        else if (id == ID_FILE_EXPORTIMAGE) {
 			saveImage();
 		}
         else {

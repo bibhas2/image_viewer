@@ -10,6 +10,21 @@ void ImageUtil::scale(float v) {
 	scaleEffect->SetValue(D2D1_SCALE_PROP_SCALE, D2D1::Vector2F(_scale, _scale));
 }
 
+void ImageUtil::scaleToFit() {
+	//Get the size of the render target
+	D2D1_SIZE_F rtSize = pRenderTarget->GetSize();
+	//Get the size of the bitmap
+	D2D1_SIZE_F bmpSize = pBitmap->GetSize();
+	//Calculate the scale factors for width and height
+	float scaleX = rtSize.width / bmpSize.width;
+	float scaleY = rtSize.height / bmpSize.height;
+	//Choose the smaller scale factor to fit the image within the render target
+	float value = (scaleX < scaleY) ? scaleX : scaleY;
+
+	//Set the scale
+	scale(value);
+}
+
 void ImageUtil::whitePointX(float v) { 
 	_whitePointX = v; 
 

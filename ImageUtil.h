@@ -90,6 +90,7 @@ struct ImageUtil
 	void redraw();
 	void buildEffectChain();
 	bool formatForFileExtension(std::wstring& file_name, GUID& wicFormatId);
+	void scaleToFit();
 };
 
 void check_throw(HRESULT hr);
