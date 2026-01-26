@@ -40,8 +40,10 @@ bool select_file(HWND hWnd, bool is_open, std::wstring& selected_name) {
 
     COMDLG_FILTERSPEC rgSpec[] =
     {
+        { L"Image Files", L"*.jpg;*.jpeg;*.png;*.tiff;*.tif" },
         { L"JPEG Image", L"*.jpg;*.jpeg" },
         { L"PNG Image", L"*.png" },
+        { L"TIFF Image", L"*.tiff;*.tif" },
         { L"All Files", L"*.*" },
     };
 
