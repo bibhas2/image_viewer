@@ -238,7 +238,9 @@ bool ImageUtil::loadImageFromFile(const wchar_t* filename)
 
 	hr = pConverter->Initialize(
 		pFrame.get(),
-		GUID_WICPixelFormat32bppPBGRA,
+		//Use a high bit per pixel format to preserve fidelity
+		//with the source image
+		GUID_WICPixelFormat128bppPRGBAFloat,
 		WICBitmapDitherTypeNone,
 		nullptr,
 		0.0,
@@ -347,10 +349,8 @@ bool ImageUtil::saveImageToFile(const std::wstring& filename) {
 		D2D1_BITMAP_PROPERTIES1 bitmapProperties =
 			D2D1::BitmapProperties1(
 				D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-				D2D1::PixelFormat(
-					DXGI_FORMAT_B8G8R8A8_UNORM,
-					D2D1_ALPHA_MODE_PREMULTIPLIED
-				)
+				//Use the original source pixel format
+				pBitmap->GetPixelFormat()
 			);
 
 		hr = pDeviceContext->CreateBitmap(
@@ -426,6 +426,11 @@ bool ImageUtil::saveImageToFile(const std::wstring& filename) {
 
 		hr = wicBitmapFrameEncode->Initialize(nullptr);
 		check_throw(hr);
+
+		//Using a high pixel format will preserve the original
+		//fidelity.
+		WICPixelFormatGUID guid = GUID_WICPixelFormat128bppPRGBAFloat;
+		wicBitmapFrameEncode->SetPixelFormat(&guid);
 
 		SmartPtr<ID2D1Device> d2dDevice;
 		SmartPtr<IWICImageEncoder> imageEncoder;
