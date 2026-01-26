@@ -121,6 +121,9 @@ public:
         else if (id == ID_FILE_EXPORTIMAGE) {
 			saveImage();
 		}
+        else if (id == IDM_EXIT) {
+            CWindow::stop();
+        }
         else {
             CFrame::onCommand(id, type, source);
         }
