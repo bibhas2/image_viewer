@@ -429,7 +429,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_ LPWSTR    lpCmdLine,
     _In_ int       nCmdShow)
 {
-	CWindow::init(hInstance);
+	CWindow::init(hInstance, IDC_IMAGEVIEWER);
 
     HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
