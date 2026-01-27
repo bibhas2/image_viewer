@@ -205,7 +205,7 @@ struct ToolsWindow : public CFrame {
 		// Highlights
 		CLabel().create("Highlights", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
-		highlights.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
+		highlights.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
 		highlights.setMin(-100);
 		highlights.setMax(100);
         highlights.setPos((int)(mainWindow.imUtil.highlights() * 100));
@@ -214,7 +214,7 @@ struct ToolsWindow : public CFrame {
 		// Shadows
 		CLabel().create("Shadows", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
-		shadows.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
+		shadows.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
 		shadows.setMin(-100);
 		shadows.setMax(100);
 		shadows.setPos((int)(mainWindow.imUtil.shadows() * 100));
@@ -222,7 +222,7 @@ struct ToolsWindow : public CFrame {
 
 		CLabel().create("White Point X", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
-		whitePointX.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU) ID_WHITEPOINTX);
+		whitePointX.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU) ID_WHITEPOINTX);
 		whitePointX.setMin(0);
 		whitePointX.setMax(100);
 		whitePointX.setPos((int)(mainWindow.imUtil.whitePointX() * 100));
@@ -231,7 +231,7 @@ struct ToolsWindow : public CFrame {
 
 		CLabel().create("White Point Y", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
-		whitePointY.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_WHITEPOINTY);
+		whitePointY.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_WHITEPOINTY);
 		whitePointY.setMin(0);
 		whitePointY.setMax(100);
 		whitePointY.setPos((int)(mainWindow.imUtil.whitePointY() * 100));
@@ -239,7 +239,7 @@ struct ToolsWindow : public CFrame {
 		y += TRACKBAR_H + GAP;
 		CLabel().create("Black Point X", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
-		blackPointX.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_BLACKPOINTX);
+		blackPointX.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_BLACKPOINTX);
 		blackPointX.setMin(0);
 		blackPointX.setMax(100);
 		blackPointX.setPos((int)(mainWindow.imUtil.blackPointX() * 100));
@@ -247,7 +247,7 @@ struct ToolsWindow : public CFrame {
 		y += TRACKBAR_H + GAP;
 		CLabel().create("Black Point Y", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
-		blackPointY.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_BLACKPOINTY);
+		blackPointY.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_BLACKPOINTY);
 		blackPointY.setMin(0);
 		blackPointY.setMax(100);
 		blackPointY.setPos((int)(mainWindow.imUtil.blackPointY() * 100));
@@ -256,7 +256,7 @@ struct ToolsWindow : public CFrame {
 
 		CLabel().create("Saturation", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
-		saturation.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
+		saturation.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
 		saturation.setMin(0);
 		saturation.setMax(100);
 		saturation.setPos((int)(mainWindow.imUtil.saturation() * 100 / 2.0));
@@ -265,7 +265,7 @@ struct ToolsWindow : public CFrame {
 
 		CLabel().create("Contrast", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
-		contrast.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
+		contrast.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
 		contrast.setMin(-100);
 		contrast.setMax(100);
 		contrast.setPos((int)(mainWindow.imUtil.contrast() * 100));
@@ -275,7 +275,7 @@ struct ToolsWindow : public CFrame {
 		// Exposure
 		CLabel().create("Exposure", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
-		exposure.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_EXPOSURE);
+		exposure.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_EXPOSURE);
 		// Map exposure [-2.0,2.0] to trackbar [-200,200]
 		exposure.setMin(-200);
 		exposure.setMax(200);
@@ -286,7 +286,7 @@ struct ToolsWindow : public CFrame {
 		// Temperature
 		CLabel().create("Temperature", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
-		temperature.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
+		temperature.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
 		temperature.setMin(-100);
 		temperature.setMax(100);
 		temperature.setPos((int)(mainWindow.imUtil.temperature() * 100));
@@ -295,7 +295,7 @@ struct ToolsWindow : public CFrame {
 		// Tint
 		CLabel().create("Tint", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
-		tint.create("", GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
+		tint.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
 		tint.setMin(-100);
 		tint.setMax(100);
 		tint.setPos((int)(mainWindow.imUtil.tint() * 100));
