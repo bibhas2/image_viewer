@@ -1,8 +1,8 @@
 #pragma once
 
-#include "com_ptr.h"
 #include <d2d1_2.h>
 #include <wincodec.h>
+#include <atlbase.h>
 #include <vector>
 #include <string>
 
@@ -66,21 +66,21 @@ struct ImageUtil
 
 	HWND wnd = nullptr;
 
-	SmartPtr<ID2D1Factory> pFactory;
-	SmartPtr<ID2D1HwndRenderTarget> pRenderTarget;
-	SmartPtr<ID2D1DeviceContext> pDeviceContext;
-	SmartPtr<ID2D1Bitmap> pBitmap;
-	SmartPtr <IWICImagingFactory> pWICFactory;
-	SmartPtr<ID2D1Effect> scaleEffect;
-	SmartPtr<ID2D1Effect> grayScaleEffect;
-	SmartPtr<ID2D1Effect> invertEffect;
-	SmartPtr<ID2D1Effect> brightnessEffect;
-	SmartPtr<ID2D1Effect> saturationEffect;
-	SmartPtr<ID2D1Effect> contrastEffect;
-	SmartPtr<ID2D1Effect> exposureEffect;
-	SmartPtr<ID2D1Effect> temperatureTintEffect;
-	SmartPtr<ID2D1Effect> highlightsAndShadowsEffect;
-	std::vector<SmartPtr<ID2D1Effect>> effectChain;
+	CComPtr<ID2D1Factory> pFactory;
+	CComPtr<ID2D1HwndRenderTarget> pRenderTarget;
+	CComPtr<ID2D1DeviceContext> pDeviceContext;
+	CComPtr<ID2D1Bitmap> pBitmap;
+	CComPtr <IWICImagingFactory> pWICFactory;
+	CComPtr<ID2D1Effect> scaleEffect;
+	CComPtr<ID2D1Effect> grayScaleEffect;
+	CComPtr<ID2D1Effect> invertEffect;
+	CComPtr<ID2D1Effect> brightnessEffect;
+	CComPtr<ID2D1Effect> saturationEffect;
+	CComPtr<ID2D1Effect> contrastEffect;
+	CComPtr<ID2D1Effect> exposureEffect;
+	CComPtr<ID2D1Effect> temperatureTintEffect;
+	CComPtr<ID2D1Effect> highlightsAndShadowsEffect;
+	std::vector<CComPtr<ID2D1Effect>> effectChain;
 
 	bool init(HWND wnd);
 	bool loadImageFromFile(const wchar_t* filename);

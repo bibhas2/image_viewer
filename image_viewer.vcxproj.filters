@@ -27,9 +27,6 @@
     <ClInclude Include="image_viewer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="com_ptr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ImageUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>

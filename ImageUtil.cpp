@@ -206,7 +206,7 @@ void ImageUtil::redraw() {
 // Load an image from a file and create a Direct2D bitmap
 bool ImageUtil::loadImageFromFile(const wchar_t* filename)
 {
-	SmartPtr<IWICBitmapDecoder> pDecoder;
+	CComPtr<IWICBitmapDecoder> pDecoder;
 
 	HRESULT hr = pWICFactory->CreateDecoderFromFilename(
 		filename,
@@ -220,7 +220,7 @@ bool ImageUtil::loadImageFromFile(const wchar_t* filename)
 		return false;
 	}
 
-	SmartPtr<IWICBitmapFrameDecode> pFrame;
+	CComPtr<IWICBitmapFrameDecode> pFrame;
 
 	hr = pDecoder->GetFrame(0, &pFrame);
 
@@ -228,7 +228,7 @@ bool ImageUtil::loadImageFromFile(const wchar_t* filename)
 		return false;
 	}
 
-	SmartPtr<IWICFormatConverter> pConverter;
+	CComPtr<IWICFormatConverter> pConverter;
 
 	hr = pWICFactory->CreateFormatConverter(&pConverter);
 
@@ -237,7 +237,7 @@ bool ImageUtil::loadImageFromFile(const wchar_t* filename)
 	}
 
 	hr = pConverter->Initialize(
-		pFrame.get(),
+		pFrame,
 		//Use a high bit per pixel format to preserve fidelity
 		//with the source image
 		GUID_WICPixelFormat128bppPRGBAFloat,
@@ -251,10 +251,10 @@ bool ImageUtil::loadImageFromFile(const wchar_t* filename)
 		return false;
 	}
 
-	pBitmap.reset();
+	pBitmap.Release();
 
 	hr = pDeviceContext->CreateBitmapFromWicBitmap(
-		pConverter.get(),
+		pConverter,
 		nullptr,
 		&pBitmap
 	);
@@ -264,7 +264,7 @@ bool ImageUtil::loadImageFromFile(const wchar_t* filename)
 	}
 
 	//Set the bitmap as the input to the first effect in the chain
-	effectChain.front()->SetInput(0, pBitmap.get());
+	effectChain.front()->SetInput(0, pBitmap);
 
 	return true;
 }
@@ -288,14 +288,14 @@ void ImageUtil::buildEffectChain() {
 
 	//Build the graph
 	for (size_t i = 1; i < effectChain.size(); ++i) {
-		effectChain[i]->SetInputEffect(0, effectChain[i - 1].get());
+		effectChain[i]->SetInputEffect(0, effectChain[i - 1]);
 	}
 
 	//Set the bitmap as the input to the first effect in the chain
-	effectChain.front()->SetInput(0, pBitmap.get());
+	effectChain.front()->SetInput(0, pBitmap);
 
 	//Set the last effect as input to the scale effect
-	scaleEffect->SetInputEffect(0, effectChain.back().get());
+	scaleEffect->SetInputEffect(0, effectChain.back());
 }
 
 // Resize the render target when the window size changes
@@ -315,7 +315,7 @@ void ImageUtil::render()
 
 	if (pBitmap) {
 		pDeviceContext->DrawImage(
-			scaleEffect.get()
+			scaleEffect
 		);
 	}
 
@@ -344,7 +344,7 @@ bool ImageUtil::saveImageToFile(const std::wstring& filename) {
 		HRESULT hr;
 
 		//Create a bitmap to render to
-		SmartPtr<ID2D1Bitmap1> offscreenBitmap;
+		CComPtr<ID2D1Bitmap1> offscreenBitmap;
 		D2D1_SIZE_F bitmapSize = pBitmap->GetSize();
 		D2D1_BITMAP_PROPERTIES1 bitmapProperties =
 			D2D1::BitmapProperties1(
@@ -366,26 +366,26 @@ bool ImageUtil::saveImageToFile(const std::wstring& filename) {
 		check_throw(hr);
 
 		//Set the bitmap as the target
-		SmartPtr<ID2D1Image> oldTarget;
+		CComPtr<ID2D1Image> oldTarget;
 
 		pDeviceContext->GetTarget(&oldTarget);
-		pDeviceContext->SetTarget(offscreenBitmap.get());
+		pDeviceContext->SetTarget(offscreenBitmap);
 
 		//Draw the image using the effect chain
 		pDeviceContext->BeginDraw();
 		pDeviceContext->Clear(D2D1::ColorF(D2D1::ColorF::White));
 		pDeviceContext->DrawImage(
-			effectChain.back().get()
+			effectChain.back()
 		);
 		hr = pDeviceContext->EndDraw();
 		check_throw(hr);
 
 		//Restore old target
-		pDeviceContext->SetTarget(oldTarget.get());
+		pDeviceContext->SetTarget(oldTarget);
 
 		//Now export the offline bitmap to a PNG file using WIC
 
-		SmartPtr<IWICStream> stream;
+		CComPtr<IWICStream> stream;
 
 		hr = pWICFactory->CreateStream(&stream);
 		check_throw(hr);
@@ -396,12 +396,12 @@ bool ImageUtil::saveImageToFile(const std::wstring& filename) {
 		);
 		check_throw(hr);
 
-		SmartPtr<IWICImagingFactory2> wicFactory2;
+		CComPtr<IWICImagingFactory2> wicFactory2;
 
 		hr = pWICFactory->QueryInterface(IID_PPV_ARGS(&wicFactory2));
 		check_throw(hr);
 
-		SmartPtr<IWICBitmapEncoder> wicBitmapEncoder;
+		CComPtr<IWICBitmapEncoder> wicBitmapEncoder;
 
 		hr = wicFactory2->CreateEncoder(
 			wicFormat,
@@ -411,12 +411,12 @@ bool ImageUtil::saveImageToFile(const std::wstring& filename) {
 		check_throw(hr);
 
 		hr = wicBitmapEncoder->Initialize(
-			stream.get(),
+			stream,
 			WICBitmapEncoderNoCache
 		);
 		check_throw(hr);
 
-		SmartPtr<IWICBitmapFrameEncode> wicBitmapFrameEncode;
+		CComPtr<IWICBitmapFrameEncode> wicBitmapFrameEncode;
 
 		hr = wicBitmapEncoder->CreateNewFrame(
 			&wicBitmapFrameEncode,
@@ -432,20 +432,20 @@ bool ImageUtil::saveImageToFile(const std::wstring& filename) {
 		WICPixelFormatGUID guid = GUID_WICPixelFormat128bppPRGBAFloat;
 		wicBitmapFrameEncode->SetPixelFormat(&guid);
 
-		SmartPtr<ID2D1Device> d2dDevice;
-		SmartPtr<IWICImageEncoder> imageEncoder;
+		CComPtr<ID2D1Device> d2dDevice;
+		CComPtr<IWICImageEncoder> imageEncoder;
 
 		pDeviceContext->GetDevice(&d2dDevice);
 
 		hr = wicFactory2->CreateImageEncoder(
-			d2dDevice.get(),
+			d2dDevice,
 			&imageEncoder
 		);
 		check_throw(hr);
 
 		hr = imageEncoder->WriteFrame(
-			offscreenBitmap.get(),
-			wicBitmapFrameEncode.get(),
+			offscreenBitmap,
+			wicBitmapFrameEncode,
 			nullptr
 		);
 		check_throw(hr);

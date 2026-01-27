@@ -381,12 +381,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
 	CWindow::init(hInstance, IDC_IMAGEVIEWER);
 
-    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
-
-    if (!SUCCEEDED(hr)) {
-        return FALSE;
-    }
-
 	MainWindow mainWin;
 
     mainWin.create();
@@ -398,8 +392,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     toolsWindow.show();
 
 	CWindow::loop();
-
-    CoUninitialize();
 
 	return 0;
 }
