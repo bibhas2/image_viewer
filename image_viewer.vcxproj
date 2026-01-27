@@ -141,7 +141,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="com_ptr.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="ImageUtil.h" />
     <ClInclude Include="image_viewer.h" />

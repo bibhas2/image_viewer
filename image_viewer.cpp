@@ -17,75 +17,6 @@
 //We need dxguid.lib for some of the CLSID and IID definitions
 #pragma comment(lib, "dxguid.lib")
 
-bool select_file(HWND hWnd, bool is_open, std::wstring& selected_name) {
-    SmartPtr<IFileDialog> pFileSelector;
-    //SmartPtr<IFileOpenDialog> pFileOpenDialog;
-    //SmartPtr<IFileSaveDialog> pFileSaveDialog;
-
-    HRESULT hr = S_OK;
-        
-    if (is_open) {
-        hr = CoCreateInstance(CLSID_FileOpenDialog, 
-            NULL, 
-            CLSCTX_INPROC_SERVER,
-            IID_PPV_ARGS(&pFileSelector));
-        check_throw(hr);
-    } else {
-        hr = CoCreateInstance(CLSID_FileSaveDialog, 
-            NULL, 
-            CLSCTX_INPROC_SERVER,
-            IID_PPV_ARGS(&pFileSelector));
-        check_throw(hr);
-	}
-
-    COMDLG_FILTERSPEC rgSpec[] =
-    {
-        { L"Image Files", L"*.jpg;*.jpeg;*.png;*.tiff;*.tif" },
-        { L"JPEG Image", L"*.jpg;*.jpeg" },
-        { L"PNG Image", L"*.png" },
-        { L"TIFF Image", L"*.tiff;*.tif" },
-        { L"All Files", L"*.*" },
-    };
-
-	hr = pFileSelector->SetFileTypes(ARRAYSIZE(rgSpec), rgSpec);
-	check_throw(hr);
-
-    hr = pFileSelector->SetFileTypeIndex(0);
-	check_throw(hr);
-
-    hr = pFileSelector->Show(hWnd);
-
-    if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED)) {
-        return false; // User cancelled the dialog
-	}
-
-	check_throw(hr);
-
-    SmartPtr<IShellItem> pItem;
-
-    hr = pFileSelector->GetResult(&pItem);
-	check_throw(hr);
-
-    PWSTR pszFilePath;
-    // Get the file system path from the Shell item
-    hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
-	check_throw(hr);
-
-    selected_name = pszFilePath;
-
-    CoTaskMemFree(pszFilePath);
-
-	return true;
-}
-
-bool select_open_file(HWND hWnd, std::wstring& selected_name) {
-	return select_file(hWnd, true, selected_name);
-}
-
-bool select_save_file(HWND hWnd, std::wstring& selected_name) {
-    return select_file(hWnd, false, selected_name);
-}
-
 class MainWindow : public CFrame {
 public:
 	ImageUtil imUtil;
@@ -131,8 +62,16 @@ public:
 
     void saveImage() {
         std::wstring selected_name;
+        std::vector<COMDLG_FILTERSPEC> filters =
+        {
+            { L"Image Files", L"*.jpg;*.jpeg;*.png;*.tiff;*.tif" },
+            { L"JPEG Image", L"*.jpg;*.jpeg" },
+            { L"PNG Image", L"*.png" },
+            { L"TIFF Image", L"*.tiff;*.tif" },
+            { L"All Files", L"*.*" },
+        };
 
-        if (!select_save_file(m_wnd, selected_name)) {
+        if (!saveFileName(L"Export Image", filters, selected_name)) {
             return;
         }
 
@@ -153,8 +92,16 @@ public:
 
     void openImage() {
         std::wstring selected_name;
+        std::vector<COMDLG_FILTERSPEC> filters =
+        {
+            { L"Image Files", L"*.jpg;*.jpeg;*.png;*.tiff;*.tif" },
+            { L"JPEG Image", L"*.jpg;*.jpeg" },
+            { L"PNG Image", L"*.png" },
+            { L"TIFF Image", L"*.tiff;*.tif" },
+            { L"All Files", L"*.*" },
+        };
 
-        if (!select_open_file(m_wnd, selected_name)) {
+        if (!openFileName(L"Export Image", filters, selected_name)) {
             return;
         }
 
@@ -434,12 +381,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
 	CWindow::init(hInstance, IDC_IMAGEVIEWER);
 
-    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
-
-    if (!SUCCEEDED(hr)) {
-        return FALSE;
-    }
-
 	MainWindow mainWin;
 
     mainWin.create();
@@ -451,8 +392,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     toolsWindow.show();
 
 	CWindow::loop();
-
-    CoUninitialize();
 
 	return 0;
 }
