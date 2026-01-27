@@ -101,7 +101,7 @@ public:
             { L"All Files", L"*.*" },
         };
 
-        if (!openFileName(L"Export Image", filters, selected_name)) {
+        if (!openFileName(L"Open Image", filters, selected_name)) {
             return;
         }
 
