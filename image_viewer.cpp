@@ -22,7 +22,7 @@ public:
 	ImageUtil imUtil;
 
     void create() {
-        CFrame::create("Image Viewer", 800, 600, IDC_IMAGEVIEWER);
+        CFrame::create(L"Image Viewer", 800, 600, IDC_IMAGEVIEWER);
 		imUtil.init(m_wnd);
 	}
 
@@ -82,7 +82,7 @@ public:
         GUID formatId;
 
         if (!imUtil.formatForFileExtension(selected_name, formatId)) {
-            messageBox("Unsupported file extension.\n\nOnly JPEG and PNG files are supported.");
+            messageBox(L"Unsupported file extension.\n\nOnly JPEG and PNG files are supported.");
 
             return;
 		}
@@ -181,7 +181,7 @@ struct ToolsWindow : public CFrame {
     }
 
     void create() {
-        CFrame::create("Tools", WIDTH + 8 * GAP, 640);
+        CFrame::create(L"Tools", WIDTH + 8 * GAP, 640);
 
 		//Hide the minimize, maximize and resize options
         LONG_PTR style = GetWindowLongPtr(getWindow(), GWL_STYLE);
@@ -192,18 +192,18 @@ struct ToolsWindow : public CFrame {
         int y = GAP;
 
 		//Create invert checkbox
-		invert.create("Invert Colors", GAP, y, WIDTH, LABEL_H, this, (HMENU)ID_INVERT);
+		invert.create(L"Invert Colors", GAP, y, WIDTH, LABEL_H, this, (HMENU)ID_INVERT);
 		//Set initial state
 		invert.setCheck(mainWindow.imUtil.applyInvert());
 		y += LABEL_H + GAP;
 
-        grayscale.create("Grayscale", GAP, y, WIDTH, LABEL_H, this, (HMENU) ID_GRAYSCALE);
+        grayscale.create(L"Grayscale", GAP, y, WIDTH, LABEL_H, this, (HMENU) ID_GRAYSCALE);
 		//Set initial state
 		grayscale.setCheck(mainWindow.imUtil.applyGrayscale());
 		y += LABEL_H + GAP;
 
 		// Highlights
-		CLabel().create("Highlights", GAP, y, WIDTH, LABEL_H, this);
+		CLabel().create(L"Highlights", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
 		highlights.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
 		highlights.setMin(-100);
@@ -212,7 +212,7 @@ struct ToolsWindow : public CFrame {
 		y += TRACKBAR_H + GAP;
 
 		// Shadows
-		CLabel().create("Shadows", GAP, y, WIDTH, LABEL_H, this);
+		CLabel().create(L"Shadows", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
 		shadows.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
 		shadows.setMin(-100);
@@ -220,7 +220,7 @@ struct ToolsWindow : public CFrame {
 		shadows.setPos((int)(mainWindow.imUtil.shadows() * 100));
 		y += TRACKBAR_H + GAP;
 
-		CLabel().create("White Point X", GAP, y, WIDTH, LABEL_H, this);
+		CLabel().create(L"White Point X", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
 		whitePointX.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU) ID_WHITEPOINTX);
 		whitePointX.setMin(0);
@@ -229,7 +229,7 @@ struct ToolsWindow : public CFrame {
 
 		y += TRACKBAR_H + GAP;
 
-		CLabel().create("White Point Y", GAP, y, WIDTH, LABEL_H, this);
+		CLabel().create(L"White Point Y", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
 		whitePointY.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_WHITEPOINTY);
 		whitePointY.setMin(0);
@@ -237,7 +237,7 @@ struct ToolsWindow : public CFrame {
 		whitePointY.setPos((int)(mainWindow.imUtil.whitePointY() * 100));
 
 		y += TRACKBAR_H + GAP;
-		CLabel().create("Black Point X", GAP, y, WIDTH, LABEL_H, this);
+		CLabel().create(L"Black Point X", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
 		blackPointX.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_BLACKPOINTX);
 		blackPointX.setMin(0);
@@ -245,7 +245,7 @@ struct ToolsWindow : public CFrame {
 		blackPointX.setPos((int)(mainWindow.imUtil.blackPointX() * 100));
 
 		y += TRACKBAR_H + GAP;
-		CLabel().create("Black Point Y", GAP, y, WIDTH, LABEL_H, this);
+		CLabel().create(L"Black Point Y", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
 		blackPointY.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_BLACKPOINTY);
 		blackPointY.setMin(0);
@@ -254,7 +254,7 @@ struct ToolsWindow : public CFrame {
 
         y += TRACKBAR_H + GAP;
 
-		CLabel().create("Saturation", GAP, y, WIDTH, LABEL_H, this);
+		CLabel().create(L"Saturation", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
 		saturation.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
 		saturation.setMin(0);
@@ -263,7 +263,7 @@ struct ToolsWindow : public CFrame {
 
         y += TRACKBAR_H + GAP;
 
-		CLabel().create("Contrast", GAP, y, WIDTH, LABEL_H, this);
+		CLabel().create(L"Contrast", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
 		contrast.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
 		contrast.setMin(-100);
@@ -273,7 +273,7 @@ struct ToolsWindow : public CFrame {
         y += TRACKBAR_H + GAP;
 
 		// Exposure
-		CLabel().create("Exposure", GAP, y, WIDTH, LABEL_H, this);
+		CLabel().create(L"Exposure", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
 		exposure.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)ID_EXPOSURE);
 		// Map exposure [-2.0,2.0] to trackbar [-200,200]
@@ -284,7 +284,7 @@ struct ToolsWindow : public CFrame {
         y += TRACKBAR_H + GAP;
 
 		// Temperature
-		CLabel().create("Temperature", GAP, y, WIDTH, LABEL_H, this);
+		CLabel().create(L"Temperature", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
 		temperature.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
 		temperature.setMin(-100);
@@ -293,7 +293,7 @@ struct ToolsWindow : public CFrame {
 		y += TRACKBAR_H + GAP;
 
 		// Tint
-		CLabel().create("Tint", GAP, y, WIDTH, LABEL_H, this);
+		CLabel().create(L"Tint", GAP, y, WIDTH, LABEL_H, this);
 		y += LABEL_H + GAP;
 		tint.create(GAP, y, WIDTH, TRACKBAR_H, this, (HMENU)0);
 		tint.setMin(-100);
